@@ -43,7 +43,7 @@
   };
 
   // Halaman Keranjang
-  const CartPage: React.FC<{ cartCount: number; setCartCount: (n:number)=>void }> = ({ cartCount, setCartCount }) => {
+  const CartPage: React.FC<{ cartCount: number; setCartCount: (n:number)=>void }> = ({ cartCount, setCartCount }) => { captureFirstUtm();
     const { items, totalQty, setQty, remove: removeItem } = useCartHook();
     const [name, setName] = useState('');
     const [wa, setWa] = useState('');
@@ -68,12 +68,15 @@
       'Sebelum Aku Tiada': 157000,
       'Melawan Kemustahilan': 249000,
       'Titik Balik': 147000,
+      'Al-Qur’an Kharisma': 297000,
     };
     const formatRupiah = (n:number) => `Rp ${n.toLocaleString('id-ID')}`;
 
     const total = items.reduce((s,it)=> s + (priceMap[it.title]||0) * it.qty, 0);
 
     const buildMessage = () => {
+      const utm = readUtm();
+      const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
       const lines = [
         'Assalamu’alaikum, saya ingin memesan:',
         '',
@@ -84,6 +87,7 @@
         `Nama: ${name}`,
         `WhatsApp: ${normalizeWa(wa)}`,
         note ? `Catatan: ${note}` : undefined,
+        utmStr || undefined,
         '',
         'Terima kasih.'
       ].filter(Boolean).join('\n');
@@ -107,6 +111,7 @@
           note,
           items,
           total,
+          utm: readUtm(),
         };
         await fetch('/api/order', {
           method: 'POST',
@@ -136,6 +141,14 @@
       }
       const fb2 = (window as any).fbq;
       if (typeof fb2 === 'function') {
+        fb2('track', 'AddPaymentInfo', {
+          content_ids: items.map(it => it.slug),
+          contents: items.map(it => ({ id: it.slug, quantity: it.qty })),
+          num_items: items.reduce((s,it)=>s+it.qty,0),
+          content_type: 'product',
+          currency: 'IDR',
+          value: total,
+        });
         fb2('track', 'Contact', {
           content_type: 'product',
           num_items: items.reduce((s,it)=>s+it.qty,0),
@@ -150,7 +163,18 @@
     return (
       <main className="pt-24 pb-16 min-h-screen bg-gray-50">
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Keranjang</h1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => { if (window.history.length > 1) { window.history.back(); } else { window.location.hash = '#'; } }}
+              aria-label="Kembali"
+              className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span className="font-semibold">Kembali</span>
+            </button>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Keranjang</h1>
+          </div>
           {items.length === 0 ? (
             <div className="mt-6 bg-white rounded-xl border p-6 text-gray-600">Keranjang kosong. Silakan tambahkan produk terlebih dahulu.</div>
           ) : (
@@ -213,11 +237,102 @@
     );
   };
 
+  // Halaman Pesan Quran (form khusus)
+  const QuickOrderQuranPage: React.FC = () => { captureFirstUtm();
+    const [qty, setQty] = useState<number>(1);
+    const [name, setName] = useState('');
+    const [wa, setWa] = useState('');
+    const [address, setAddress] = useState('');
+    const [note, setNote] = useState('');
+    useEffect(()=>{ window.scrollTo({ top: 0, behavior: 'auto' }); }, []);
+    const normalizeWa = (s:string) => { const d=s.replace(/\D/g,''); if(d.startsWith('62')) return d; if(d.startsWith('0')) return '62'+d.slice(1); return '62'+d; };
+    const formatRupiah = (n:number) => `Rp ${n.toLocaleString('id-ID')}`;
+    const price = 297000;
+    const total = price * Math.max(1, qty);
+    const canSend = name.trim().length>1 && /\d{10,}/.test(wa.replace(/\D/g,'')) && address.trim().length>5;
+    const buildMessage = () => {
+      const utm = readUtm();
+      const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+      const lines = [
+        'Assalamu’alaikum, saya ingin memesan Al-Qur’an Kharisma:',
+        `Jumlah: ${Math.max(1, qty)} pcs`,
+        `Harga satuan: ${formatRupiah(price)}`,
+        `Estimasi total: ${formatRupiah(total)} (belum ongkir)`,
+        '',
+        `Nama: ${name}`,
+        `WhatsApp: ${normalizeWa(wa)}`,
+        `Alamat: ${address}`,
+        note ? `Catatan: ${note}` : undefined,
+        utmStr || undefined,
+        '',
+        'Saya akan mengirimkan bukti transfer setelah pembayaran.',
+      ].filter(Boolean).join('\n');
+      return `https://wa.me/6287879713808?text=${encodeURIComponent(lines)}`;
+    };
+    return (
+      <main className="pt-24 pb-16 min-h-screen bg-gray-50">
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => { if (window.history.length>1) window.history.back(); else window.location.hash = '#'; }} aria-label="Kembali" className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800">
+              <ChevronLeft className="w-5 h-5" /> <span className="font-semibold">Kembali</span>
+            </button>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Pesan Al-Qur’an Kharisma</h1>
+          </div>
+
+          <div className="mt-6 grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-4 bg-white rounded-xl border p-5">
+              <div className="flex items-center gap-3">
+                <img src="/cover.jpg" alt="Al-Qur’an Kharisma" className="w-16 h-20 object-cover rounded" />
+                <div>
+                  <p className="font-semibold text-gray-900">Al-Qur’an Kharisma</p>
+                  <p className="text-sm text-gray-600">Harga: {formatRupiah(price)}</p>
+                </div>
+              </div>
+              <div className="inline-flex items-center gap-2 bg-gray-50 rounded px-2 py-1 w-max">
+                <button onClick={()=>setQty(q=>Math.max(1,q-1))} className="px-2 py-0.5 rounded bg-white border">-</button>
+                <input value={qty} onChange={(e)=> setQty(Math.max(1, Math.min(999, Number(e.target.value)||1)))} className="w-14 text-center border rounded bg-white" />
+                <button onClick={()=>setQty(q=>Math.min(999,q+1))} className="px-2 py-0.5 rounded bg-white border">+</button>
+              </div>
+              <div className="text-sm text-gray-600">Subtotal: <span className="font-semibold text-gray-900">{formatRupiah(total)}</span></div>
+            </div>
+            <div className="bg-white rounded-xl border p-5 h-max">
+              <h2 className="font-semibold text-gray-900">Data Pemesan</h2>
+              <div className="mt-3 space-y-2">
+                <input value={name} onChange={(e)=>setName(e.target.value)} placeholder="Nama Lengkap" className="w-full border rounded px-3 py-2" />
+                <input value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp (contoh: 081234567890)" className="w-full border rounded px-3 py-2" />
+                <input value={address} onChange={(e)=>setAddress(e.target.value)} placeholder="Alamat lengkap (jalan, kecamatan, kota)" className="w-full border rounded px-3 py-2" />
+                <textarea value={note} onChange={(e)=>setNote(e.target.value)} placeholder="Catatan (opsional)" className="w-full border rounded px-3 py-2 h-20" />
+              </div>
+              <div className="mt-3 border-t pt-3">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Total Estimasi</span>
+                  <span className="font-semibold text-gray-900">{formatRupiah(total)}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Belum termasuk ongkos kirim.</p>
+              </div>
+              <a
+                href={canSend ? buildMessage() : undefined}
+                onClick={(e)=>{ if(!canSend){ e.preventDefault(); alert('Lengkapi nama, nomor WA valid, dan alamat.'); return; } const fb=(window as any).fbq; if(typeof fb==='function'){ const q=Math.max(1, qty); fb('track','InitiateCheckout',{ content_ids: ['quran-kharisma'], contents: [{ id: 'quran-kharisma', quantity: q }], num_items: q, content_type:'product', currency:'IDR', value: total }); fb('track','AddPaymentInfo',{ content_ids: ['quran-kharisma'], contents: [{ id: 'quran-kharisma', quantity: q }], num_items: q, content_type:'product', currency:'IDR', value: total }); fb('track','Contact',{content_name:'Al-Qur’an Kharisma', content_type:'product', value: total, currency:'IDR'}); } }}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canSend? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+              >
+                Kirim Pemesanan via WhatsApp
+                <Phone className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  };
+
   // Harga novel dan bonus
   const PRODUCT_PRICING: Record<string, { price: string; bonus?: string }> = {
     'Sebelum Aku Tiada': { price: 'Rp 157.000' },
     'Melawan Kemustahilan': { price: 'Rp 249.000', bonus: 'Bonus Video Motivasi Spesial Dewa Eka Prayoga senilai Rp 300.000' },
     'Titik Balik': { price: 'Rp 147.000' },
+    'Al-Qur’an Kharisma': { price: 'Rp 297.000' },
   };
 
   const buildProductWaLink = (title: string) => {
@@ -298,6 +413,25 @@
     tokopedia: "#",
   } as const;
 
+  // UTM helpers (persist first-touch)
+  const UTM_KEY = 'first_utm_v1';
+  const captureFirstUtm = () => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const utm = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].reduce((acc, k) => {
+      const v = params.get(k);
+      if (v) (acc as any)[k] = v;
+      return acc;
+    }, {} as Record<string,string>);
+    if (Object.keys(utm).length > 0 && !localStorage.getItem(UTM_KEY)) {
+      localStorage.setItem(UTM_KEY, JSON.stringify({ ...utm, ts: Date.now(), path: window.location.pathname + window.location.hash }));
+    }
+  };
+  const readUtm = (): Record<string, string> => {
+    if (typeof window === 'undefined') return {};
+    try { return JSON.parse(localStorage.getItem(UTM_KEY) || '{}') as Record<string,string>; } catch { return {}; }
+  };
+
   const openWaInterest = (productTitle: string, name?: string, wa?: string, email?: string) => {
     const message = `Assalamu’alaikum, saya tertarik dengan buku ${productTitle}. Mohon informasikan saat tersedia. Nama: ${name ?? '-'}, WA: ${wa ?? '-'}${email ? `, Email: ${email}` : ''}`;
     const fb = (window as any).fbq;
@@ -347,6 +481,7 @@
     const [name, setName] = useState('');
     const [wa, setWa] = useState('');
     const [email, setEmail] = useState('');
+    const [address, setAddress] = useState('');
     const [menuOpen, setMenuOpen] = useState(false);
     const [qty, setQty] = useState<number>(1);
     const [coverLoaded, setCoverLoaded] = useState(false);
@@ -354,6 +489,7 @@
     // derive price number for JSON-LD
     const priceStr = PRODUCT_PRICING[title]?.price || 'Rp 0';
     const priceNum = Number((priceStr.match(/\d+/g) || []).join('') || 0);
+    const canQuickOrder = name.trim().length>1 && /\d{10,}/.test((wa||'').replace(/\D/g,'')) && address.trim().length>5;
     useEffect(() => {
       // GA4 view_item
       const g = (window as any).gtag;
@@ -413,9 +549,22 @@
                   )}
                 </button>
               </nav>
-              <button className="md:hidden text-gray-700" aria-label="Toggle menu" onClick={() => setMenuOpen((v) => !v)}>
-                {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-              </button>
+              <div className="flex items-center gap-2 md:hidden">
+                <button
+                  type="button"
+                  onClick={()=>{ window.location.hash = '#/keranjang'; }}
+                  className="relative inline-flex items-center p-2 rounded-full text-gray-700 hover:text-emerald-700 hover:bg-emerald-50"
+                  aria-label="Keranjang"
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#4CAF50] text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full font-bold">{cartCount}</span>
+                  )}
+                </button>
+                <button className="text-gray-700" aria-label="Toggle menu" onClick={() => setMenuOpen((v) => !v)}>
+                  {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+                </button>
+              </div>
             </div>
           </div>
           {menuOpen && (
@@ -553,39 +702,68 @@
                   Tambah ke Keranjang
                   <ShoppingCart className="w-5 h-5" />
                 </button>
-                <a
-                  href={buildProductWaLink(title)}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    try {
-                      const total = priceNum * Math.max(1, qty);
-                      await fetch('/api/order', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          source: 'product',
-                          slug,
-                          title,
-                          qty,
-                          total,
-                        }),
-                      });
-                    } catch {}
-                    const fb = (window as any).fbq;
-                    if (typeof fb === 'function') {
-                      fb('track', 'Contact', { content_name: title, content_ids: [slug], content_type: 'product' });
-                    }
-                    window.open(buildProductWaLink(title), '_blank');
-                  }}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-gray-100 text-[#4A6741] font-semibold shadow"
-                >
-                  Pesan via WhatsApp
-                  <Phone className="w-5 h-5" />
-                </a>
               </div>
               <div className="mt-4 text-sm text-white/90">🔖 Produk dari Tim yang Sama dengan Al-Qur’an Kharisma</div>
+
+              <div className="mt-6 bg-white/10 rounded-2xl p-4 md:p-5">
+                <div className="font-semibold text-white">Pesan Cepat</div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <input value={name} onChange={(e)=>setName(e.target.value)} placeholder="Nama lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
+                  <input value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
+                  <input value={address} onChange={(e)=>setAddress(e.target.value)} placeholder="Alamat lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
+                </div>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    disabled={!canQuickOrder}
+                    onClick={async ()=>{
+                      try {
+                        const total = priceNum * Math.max(1, qty);
+                        await fetch('/api/order', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            source: 'quick-order',
+                            slug,
+                            title,
+                            qty,
+                            total,
+                            name,
+                            whatsapp: wa,
+                            address,
+                            utm: readUtm(),
+                          }),
+                        });
+                      } catch {}
+                      const msgLines = [
+                        `Assalamu’alaikum, saya ingin memesan ${title}.`,
+                        `Jumlah: ${Math.max(1, qty)}`,
+                        `Nama: ${name}`,
+                        `WhatsApp: ${wa}`,
+                        `Alamat: ${address}`,
+                        `Total estimasi: Rp ${ (priceNum * Math.max(1, qty)).toLocaleString('id-ID') } (belum ongkir)`,
+                        `\nSaya akan mengirimkan bukti transfer setelah pembayaran.`,
+                      ].join('\n');
+                      const fb = (window as any).fbq;
+                      if (typeof fb === 'function') {
+                        const qtyNow = Math.max(1, qty);
+                        const val = priceNum * qtyNow;
+                        fb('track', 'AddPaymentInfo', {
+                          currency: 'IDR',
+                          value: val,
+                          items: [{ item_id: slug, item_name: title, price: priceNum, quantity: qtyNow }],
+                        });
+                        fb('track', 'Contact', { content_name: title, content_ids: [slug], content_type: 'product', currency: 'IDR', value: val });
+                      }
+                      window.open(`https://wa.me/6287879713808?text=${encodeURIComponent(msgLines)}`, '_blank');
+                    }}
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canQuickOrder? 'bg-white text-[#4A6741] hover:bg-gray-100' : 'bg-white/40 text-white/70 cursor-not-allowed'}`}
+                  >
+                    Kirim Pemesanan via WhatsApp
+                    <Phone className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -613,11 +791,13 @@
   };
 
   const App: React.FC = () => {
+    useEffect(()=>{ captureFirstUtm(); },[]);
     const GA_ID = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID || 'G-YN5SV4C5CT';
     const track = (name: string, params?: Record<string, any>) => {
       const g = (window as any).gtag;
       if (typeof g === 'function') g('event', name, params || {});
     };
+    // ... rest of the code remains the same ...
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeTestimonial, setActiveTestimonial] = useState(0);
@@ -649,12 +829,111 @@
           value: priceNum * payload.qty,
         });
       }
+      // Toast: mobile = compact pill, desktop = with CTA
+      try {
+        const id = 'cart-toast';
+        let el = document.getElementById(id) as HTMLDivElement | null;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640; // treat <640px as mobile
+        if (!el) {
+          el = document.createElement('div');
+          el.id = id;
+          el.setAttribute('role', 'status');
+          el.setAttribute('aria-live', 'polite');
+          el.style.position = 'fixed';
+          el.style.left = '50%';
+          el.style.transform = 'translate(-50%, 10px)';
+          el.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 18px)';
+          el.style.zIndex = '9999';
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 180ms ease, transform 180ms ease';
+          document.body.appendChild(el);
+          requestAnimationFrame(() => {
+            el!.style.opacity = '1';
+            el!.style.transform = 'translate(-50%, 0)';
+          });
+        }
+
+        // reset content and base styles per mode
+        el.innerHTML = '';
+        el.style.maxWidth = isMobile ? '92vw' : '640px';
+        el.style.pointerEvents = 'auto';
+        el.style.borderRadius = isMobile ? '9999px' : '14px';
+        el.style.boxShadow = isMobile ? '0 8px 18px rgba(0,0,0,0.25)' : '0 12px 30px rgba(0,0,0,0.25)';
+        el.style.background = isMobile ? '#4A6741' : 'rgba(20,20,20,0.92)';
+        el.style.border = isMobile ? '0' : '1px solid rgba(255,255,255,0.12)';
+        el.style.color = '#fff';
+        (el.style as any).backdropFilter = isMobile ? '' : 'saturate(120%) blur(6px)';
+
+        const text = `${payload.qty}× “${payload.title}” ditambahkan ke keranjang`;
+
+        if (isMobile) {
+          // Compact pill text-only
+          const span = document.createElement('span');
+          span.textContent = text;
+          span.style.display = 'block';
+          span.style.padding = '10px 16px';
+          span.style.fontWeight = '700';
+          span.style.fontSize = '14px';
+          span.style.textAlign = 'center';
+          span.style.lineHeight = '1.3';
+          el.appendChild(span);
+        } else {
+          // Desktop with CTA button
+          const wrap = document.createElement('div');
+          wrap.style.display = 'flex';
+          wrap.style.alignItems = 'center';
+          wrap.style.justifyContent = 'center';
+          wrap.style.gap = '10px';
+          wrap.style.padding = '12px 14px';
+
+          const span = document.createElement('span');
+          span.textContent = text;
+          span.style.display = 'inline-block';
+          span.style.fontWeight = '600';
+          span.style.fontSize = '14px';
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = 'Lihat Keranjang';
+          btn.style.background = '#4A6741';
+          btn.style.color = '#fff';
+          btn.style.border = '0';
+          btn.style.borderRadius = '9999px';
+          btn.style.padding = '8px 12px';
+          btn.style.fontWeight = '700';
+          btn.style.fontSize = '13px';
+          btn.style.whiteSpace = 'nowrap';
+          btn.style.boxShadow = '0 8px 18px rgba(74,103,65,0.35)';
+          btn.style.cursor = 'pointer';
+          btn.onclick = () => {
+            window.location.hash = '#/keranjang';
+            el?.remove();
+          };
+
+          wrap.appendChild(span);
+          wrap.appendChild(btn);
+          el.appendChild(wrap);
+        }
+
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          try { (navigator as any).vibrate?.(15); } catch {}
+        }
+        clearTimeout((window as any).__cartToastTimer);
+        (window as any).__cartToastTimer = window.setTimeout(() => {
+          if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translate(-50%, 10px)';
+            setTimeout(() => el?.remove(), 180);
+          }
+        }, 2200);
+      } catch {}
     };
     // Route helpers must be declared before effects that depend on them
-    const isLP = !route.startsWith('#/wakaf') && !route.startsWith('#/galeri-wakaf') && !route.startsWith('#/keranjang');
+    const isLP = !route.startsWith('#/wakaf') && !route.startsWith('#/galeri-wakaf') && !route.startsWith('#/keranjang') && !route.startsWith('#/pesan-quran');
     const isWakaf = route.startsWith('#/wakaf');
     const isGaleri = route.startsWith('#/galeri-wakaf');
     const isKeranjang = route.startsWith('#/keranjang');
+    const isPesanQuran = route.startsWith('#/pesan-quran');
 
     useEffect(() => {
       const onScroll = () => setIsScrolled(window.scrollY > 24);
@@ -1241,6 +1520,8 @@
         <main>
           {isKeranjang ? (
             <CartPage cartCount={cartCount} setCartCount={setCartCount} />
+          ) : isPesanQuran ? (
+            <QuickOrderQuranPage />
           ) : productSlug === 'melawan-kemustahilan' ? (
             <ProductPage
               slug="melawan-kemustahilan"
@@ -1664,21 +1945,24 @@
                   </div>
 
                   <div className="mt-6 grid sm:grid-cols-3 gap-3">
-                    <div className="relative group">
-                      <a
-                        href={CONTACT.whatsapp}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
-                        aria-label="Pesan via WhatsApp"
-                      >
-                        <Phone className="w-5 h-5 mr-2" /> Pesan via WhatsApp
-                      </a>
-                      <div role="tooltip" className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition">
-                        Pesan Sekarang Disini!
-                        <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
-                      </div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleAddToCart({ slug: 'quran-kharisma', title: "Al-Qur’an Kharisma", cover: '/cover.jpg', qty: 1 });
+                      }}
+                      className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center shadow transition-transform hover:animate-hover-bounce"
+                      aria-label="Tambah ke Keranjang"
+                    >
+                      <ShoppingCart className="w-5 h-5 mr-2" /> Tambah ke Keranjang
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { window.location.hash = '#/pesan-quran'; }}
+                      className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
+                      aria-label="Isi Form & Pesan via WhatsApp"
+                    >
+                      <Phone className="w-5 h-5 mr-2" /> Isi Form & Pesan via WhatsApp
+                    </button>
                     <div className="relative group">
                       <a
                         href="#"
@@ -1689,22 +1973,6 @@
                         aria-label="Shopee segera hadir"
                       >
                         <ShoppingBag className="w-5 h-5 mr-2" /> Segera Hadir
-                      </a>
-                      <div role="tooltip" className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition">
-                        Channel ini segera hadir
-                        <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
-                      </div>
-                    </div>
-                    <div className="relative group">
-                      <a
-                        href="#"
-                        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()}
-                        aria-disabled="true"
-                        title="Belum tersedia"
-                        className="bg-emerald-50 text-emerald-900 font-semibold py-3 px-4 rounded-full flex items-center justify-center opacity-60 cursor-not-allowed"
-                        aria-label="Tokopedia segera hadir"
-                      >
-                        <Store className="w-5 h-5 mr-2" /> Segera Hadir
                       </a>
                       <div role="tooltip" className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition">
                         Channel ini segera hadir
@@ -1837,7 +2105,7 @@
                 <span className="text-sm md:text-base font-semibold">Hanya 297rb, Bonus E-Book & Grup Belajar!</span>
               </div>
               <div className="flex items-center gap-2">
-                <a href={CONTACT.whatsapp} target="_blank" rel="noopener noreferrer" className="bg-white text-emerald-700 font-semibold px-3 md:px-4 py-1.5 rounded-full hover:bg-gray-100 transition">Pesan</a>
+                <a href={CONTACT.whatsapp} target="_blank" rel="noopener noreferrer" onClick={(e)=>{ const fb=(window as any).fbq; if(typeof fb==='function'){ fb('track','Contact',{ content_name:'Sticky CTA', content_type:'cta', currency:'IDR' }); } }} className="bg-white text-emerald-700 font-semibold px-3 md:px-4 py-1.5 rounded-full hover:bg-gray-100 transition">Pesan</a>
                 <button onClick={() => setShowStickyCta(false)} aria-label="Tutup" className="bg-white/15 hover:bg-white/25 rounded-full p-1.5 transition">
                   <X className="w-4 h-4" />
                 </button>
