@@ -518,6 +518,24 @@
                 </button>
                 <a
                   href={buildProductWaLink(title)}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    try {
+                      const total = priceNum * Math.max(1, qty);
+                      await fetch('/api/order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          source: 'product',
+                          slug,
+                          title,
+                          qty,
+                          total,
+                        }),
+                      });
+                    } catch {}
+                    window.open(buildProductWaLink(title), '_blank');
+                  }}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-gray-100 text-[#4A6741] font-semibold shadow"
@@ -1532,17 +1550,7 @@
                     Berikutnya
                   </button>
                 </div>
-                <div className="flex justify-center mt-4">
-                  <a
-                    href={CONTACT.whatsapp}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary px-6 py-3 text-base md:text-lg flex items-center gap-2 transition-transform hover:animate-hover-bounce"
-                  >
-                    Pesan Sekarang, Rasakan Perbedaannya!
-                    <ChevronRight className="w-5 h-5" />
-                  </a>
-                </div>
+                {/* CTA bawah testimoni dihapus sesuai permintaan */}
               </div>
             </div>
           </section>
