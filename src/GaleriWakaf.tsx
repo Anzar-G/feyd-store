@@ -1,4 +1,5 @@
 import React from 'react';
+import ResponsiveImage from './components/ResponsiveImage';
 
 const GaleriWakaf: React.FC = () => {
   const media = [
@@ -20,9 +21,9 @@ const GaleriWakaf: React.FC = () => {
             <div key={src} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-2">
               <div className="rounded-lg overflow-hidden">
                 {isVideo(src) ? (
-                  <video src={src} className="w-full h-auto object-cover aspect-video" controls playsInline />
+                  <video src={src} className="w-full h-auto object-cover aspect-video" controls preload="metadata" playsInline />
                 ) : (
-                  <img src={src} alt="Dokumentasi wakaf" className="w-full h-auto object-cover aspect-square" />
+                  <ResponsiveImage src={src} alt="Dokumentasi wakaf" className="w-full h-auto object-cover aspect-square" loading="lazy" />
                 )}
               </div>
             </div>

@@ -25,6 +25,8 @@
     ArrowRight,
     ShoppingCart,
   } from 'lucide-react';
+  import SeoHead from './components/SeoHead';
+  import ResponsiveImage from './components/ResponsiveImage';
 
   // Types
   type Testimonial = {
@@ -86,6 +88,32 @@
 
     const canCheckout = name.trim().length>1 && /\d{10,}/.test(wa.replace(/\D/g,'')) && items.length>0;
 
+    const handleCheckout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (!canCheckout) {
+        e.preventDefault();
+        alert('Lengkapi nama, nomor WhatsApp yang valid, dan pastikan keranjang tidak kosong.');
+        return;
+      }
+      e.preventDefault();
+      try {
+        const payload = {
+          source: 'cart',
+          name,
+          whatsapp: normalizeWa(wa),
+          note,
+          items,
+          total,
+        };
+        await fetch('/api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch {}
+      const url = buildMessage();
+      window.open(url, '_blank');
+    };
+
     return (
       <main className="pt-24 pb-16 min-h-screen bg-gray-50">
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,7 +125,7 @@
               <div className="md:col-span-2 space-y-3">
                 {items.map(it => (
                   <div key={it.slug} className="bg-white rounded-xl border p-4 flex flex-wrap md:flex-nowrap items-start md:items-center gap-4">
-                    <img src={it.cover} alt={it.title} className="w-16 h-20 object-cover rounded" />
+                    <img src={it.cover} alt={it.title} className="w-16 h-20 object-cover rounded" loading="lazy" />
                     <div className="flex-1 min-w-[180px]">
                       <p className="font-semibold text-gray-900">{it.title}</p>
                       <p className="text-sm text-gray-600">Harga: {formatRupiah(priceMap[it.title]||0)}</p>
@@ -136,7 +164,7 @@
                 </div>
                 <a
                   href={canCheckout ? buildMessage() : undefined}
-                  onClick={(e)=>{ if(!canCheckout){ e.preventDefault(); alert('Lengkapi nama, nomor WhatsApp yang valid, dan pastikan keranjang tidak kosong.'); } else { const norm = normalizeWa(wa); /* no-op display only */ } }}
+                  onClick={handleCheckout}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canCheckout? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
@@ -284,8 +312,24 @@
     const [email, setEmail] = useState('');
     const [menuOpen, setMenuOpen] = useState(false);
     const [qty, setQty] = useState<number>(1);
+    // derive price number for JSON-LD
+    const priceStr = PRODUCT_PRICING[title]?.price || 'Rp 0';
+    const priceNum = Number((priceStr.match(/\d+/g) || []).join('') || 0);
     return (
       <div className="min-h-screen bg-[#FDFBF8]">
+        <SeoHead
+          title={`${title} — Al-Qur’an Kharisma`}
+          description={tagline}
+          image={cover}
+          url={typeof window !== 'undefined' ? window.location.href : undefined}
+          product={{
+            name: title,
+            description: synopsis?.[0],
+            image: cover,
+            brand: 'Al-Qur’an Kharisma',
+            offers: { price: priceNum, priceCurrency: 'IDR', availability: 'https://schema.org/InStock' },
+          }}
+        />
         {/* Header Produk (self-contained) */}
         <header className={`fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur shadow-sm`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -328,7 +372,12 @@
             <div className="grid md:grid-cols-2 gap-10 items-center">
               <div className="flex justify-center md:justify-end">
                 <div className="relative group bg-white rounded-xl shadow-md overflow-hidden">
-                  <img src={cover} alt={`Sampul ${title}`} className="w-[20rem] md:w-[24rem] h-auto object-cover transform group-hover:scale-[1.01] transition" />
+                  <ResponsiveImage
+                    src={cover}
+                    alt={`Sampul ${title}`}
+                    className="w-[20rem] md:w-[24rem] h-auto object-cover transform group-hover:scale-[1.01] transition"
+                    loading="lazy"
+                  />
                   <div className="absolute top-2 right-2 z-10 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase shadow">Ready Stock</div>
                 </div>
               </div>
@@ -377,10 +426,11 @@
                 <div className="flex justify-center">
                   <div className="w-40 h-40 md:w-48 md:h-48 bg-white rounded-full shadow flex items-center justify-center overflow-hidden">
                     {AUTHOR_AVATARS[author] ? (
-                      <img
+                      <ResponsiveImage
                         src={AUTHOR_AVATARS[author]}
                         alt={`Foto ${author}`}
                         className={`w-full h-full object-cover ${author === 'Asma Nadia' ? 'object-[50%_25%]' : 'object-center'}`}
+                        loading="lazy"
                       />
                     ) : (
                       <User className="w-14 h-14 text-[#4A6741]" />
