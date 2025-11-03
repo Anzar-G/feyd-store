@@ -134,6 +134,15 @@
           value: total,
         });
       }
+      const fb2 = (window as any).fbq;
+      if (typeof fb2 === 'function') {
+        fb2('track', 'Contact', {
+          content_type: 'product',
+          num_items: items.reduce((s,it)=>s+it.qty,0),
+          value: total,
+          currency: 'IDR',
+        });
+      }
       const url = buildMessage();
       window.open(url, '_blank');
     };
@@ -291,6 +300,10 @@
 
   const openWaInterest = (productTitle: string, name?: string, wa?: string, email?: string) => {
     const message = `Assalamu’alaikum, saya tertarik dengan buku ${productTitle}. Mohon informasikan saat tersedia. Nama: ${name ?? '-'}, WA: ${wa ?? '-'}${email ? `, Email: ${email}` : ''}`;
+    const fb = (window as any).fbq;
+    if (typeof fb === 'function') {
+      fb('track', 'Lead', { content_name: productTitle, content_category: 'interest' });
+    }
     window.open(`https://wa.me/6287879713808?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -558,6 +571,10 @@
                         }),
                       });
                     } catch {}
+                    const fb = (window as any).fbq;
+                    if (typeof fb === 'function') {
+                      fb('track', 'Contact', { content_name: title, content_ids: [slug], content_type: 'product' });
+                    }
                     window.open(buildProductWaLink(title), '_blank');
                   }}
                   target="_blank"
