@@ -123,6 +123,17 @@
           items: items.map(it => ({ item_id: it.slug, item_name: it.title, quantity: it.qty }))
         });
       }
+      const fb = (window as any).fbq;
+      if (typeof fb === 'function') {
+        fb('track', 'InitiateCheckout', {
+          content_ids: items.map(it => it.slug),
+          contents: items.map(it => ({ id: it.slug, quantity: it.qty })),
+          num_items: items.reduce((s,it)=>s+it.qty,0),
+          content_type: 'product',
+          currency: 'IDR',
+          value: total,
+        });
+      }
       const url = buildMessage();
       window.open(url, '_blank');
     };
@@ -338,6 +349,17 @@
           currency: 'IDR',
           value: priceNum,
           items: [{ item_id: slug, item_name: title, price: priceNum, quantity: 1 }],
+        });
+      }
+      const fb = (window as any).fbq;
+      if (typeof fb === 'function') {
+        fb('track', 'ViewContent', {
+          content_ids: [slug],
+          contents: [{ id: slug }],
+          content_name: title,
+          content_type: 'product',
+          currency: 'IDR',
+          value: priceNum,
         });
       }
     }, [slug, title, priceNum]);
@@ -600,6 +622,16 @@
         value: priceNum * payload.qty,
         items: [{ item_id: payload.slug, item_name: payload.title, price: priceNum, quantity: payload.qty }],
       });
+      const fb = (window as any).fbq;
+      if (typeof fb === 'function') {
+        fb('track', 'AddToCart', {
+          content_ids: [payload.slug],
+          contents: [{ id: payload.slug, quantity: payload.qty, item_price: priceNum }],
+          content_type: 'product',
+          currency: 'IDR',
+          value: priceNum * payload.qty,
+        });
+      }
     };
     // Route helpers must be declared before effects that depend on them
     const isLP = !route.startsWith('#/wakaf') && !route.startsWith('#/galeri-wakaf') && !route.startsWith('#/keranjang');
@@ -624,6 +656,10 @@
     // Scroll ke atas setiap kali berpindah halaman (route berubah)
     useEffect(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      const fb = (window as any).fbq;
+      if (typeof fb === 'function') {
+        fb('track', 'PageView');
+      }
     }, [route]);
 
     // Splash screen once on initial load (with exit animation)
