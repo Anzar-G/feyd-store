@@ -27,6 +27,8 @@
   } from 'lucide-react';
   import SeoHead from './components/SeoHead';
   import ResponsiveImage from './components/ResponsiveImage';
+  import { useCart as useCartHook } from './hooks/useCart';
+  import SkeletonCard from './components/SkeletonCard';
 
   // Types
   type Testimonial = {
@@ -41,17 +43,16 @@
 
   // Halaman Keranjang
   const CartPage: React.FC<{ cartCount: number; setCartCount: (n:number)=>void }> = ({ cartCount, setCartCount }) => {
-    const [items, setItems] = useState<CartItem[]>(readCart());
+    const { items } = useCartHook();
     const [name, setName] = useState('');
     const [wa, setWa] = useState('');
     const [note, setNote] = useState('');
 
     useEffect(()=>{ window.scrollTo({ top: 0, behavior: 'auto' }); }, []);
 
-    const sync = (next: CartItem[]) => { writeCart(next); setItems(next); setCartCount(getCartTotalQty()); };
-    const inc = (slug:string) => sync(setCartQty(slug, (items.find(i=>i.slug===slug)?.qty||0)+1));
-    const dec = (slug:string) => sync(setCartQty(slug, (items.find(i=>i.slug===slug)?.qty||0)-1));
-    const remove = (slug:string) => { removeCartItem(slug); sync(readCart()); };
+    const inc = (slug:string) => { setCartQty(slug, (items.find(i=>i.slug===slug)?.qty||0)+1); setCartCount(getCartTotalQty()); };
+    const dec = (slug:string) => { setCartQty(slug, (items.find(i=>i.slug===slug)?.qty||0)-1); setCartCount(getCartTotalQty()); };
+    const remove = (slug:string) => { removeCartItem(slug); setCartCount(getCartTotalQty()); };
 
     const normalizeWa = (s:string) => {
       const d = s.replace(/\D/g,'');
@@ -312,6 +313,8 @@
     const [email, setEmail] = useState('');
     const [menuOpen, setMenuOpen] = useState(false);
     const [qty, setQty] = useState<number>(1);
+    const [coverLoaded, setCoverLoaded] = useState(false);
+    const [avatarLoaded, setAvatarLoaded] = useState(false);
     // derive price number for JSON-LD
     const priceStr = PRODUCT_PRICING[title]?.price || 'Rp 0';
     const priceNum = Number((priceStr.match(/\d+/g) || []).join('') || 0);
@@ -372,11 +375,17 @@
             <div className="grid md:grid-cols-2 gap-10 items-center">
               <div className="flex justify-center md:justify-end">
                 <div className="relative group bg-white rounded-xl shadow-md overflow-hidden">
+                  {!coverLoaded && (
+                    <div className="w-[20rem] md:w-[24rem]">
+                      <SkeletonCard lines={2} />
+                    </div>
+                  )}
                   <ResponsiveImage
                     src={cover}
                     alt={`Sampul ${title}`}
                     className="w-[20rem] md:w-[24rem] h-auto object-cover transform group-hover:scale-[1.01] transition"
                     loading="lazy"
+                    onLoad={() => setCoverLoaded(true)}
                   />
                   <div className="absolute top-2 right-2 z-10 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase shadow">Ready Stock</div>
                 </div>
@@ -426,12 +435,16 @@
                 <div className="flex justify-center">
                   <div className="w-40 h-40 md:w-48 md:h-48 bg-white rounded-full shadow flex items-center justify-center overflow-hidden">
                     {AUTHOR_AVATARS[author] ? (
-                      <ResponsiveImage
-                        src={AUTHOR_AVATARS[author]}
-                        alt={`Foto ${author}`}
-                        className={`w-full h-full object-cover ${author === 'Asma Nadia' ? 'object-[50%_25%]' : 'object-center'}`}
-                        loading="lazy"
-                      />
+                      <>
+                        {!avatarLoaded && <div className="w-full h-full"><SkeletonCard lines={1} className="h-full" /></div>}
+                        <ResponsiveImage
+                          src={AUTHOR_AVATARS[author]}
+                          alt={`Foto ${author}`}
+                          className={`w-full h-full object-cover ${author === 'Asma Nadia' ? 'object-[50%_25%]' : 'object-center'}`}
+                          loading="lazy"
+                          onLoad={() => setAvatarLoaded(true)}
+                        />
+                      </>
                     ) : (
                       <User className="w-14 h-14 text-[#4A6741]" />
                     )}

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ResponsiveImage from './components/ResponsiveImage';
+import SkeletonCard from './components/SkeletonCard';
 
 const GaleriWakaf: React.FC = () => {
   const media = [
@@ -10,6 +11,8 @@ const GaleriWakaf: React.FC = () => {
   ];
 
   const isVideo = (src: string) => /\.(mp4|mov)$/i.test(src);
+
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
 
   return (
     <main className="pt-24 pb-16 bg-gray-50 min-h-screen">
@@ -22,8 +25,25 @@ const GaleriWakaf: React.FC = () => {
               <div className="rounded-lg overflow-hidden">
                 {isVideo(src) ? (
                   <video src={src} className="w-full h-auto object-cover aspect-video" controls preload="metadata" playsInline />
+                ) : loaded[src] ? (
+                  <ResponsiveImage
+                    src={src}
+                    alt="Dokumentasi wakaf"
+                    className="w-full h-auto object-cover aspect-square"
+                    loading="lazy"
+                    onLoad={() => setLoaded((m) => ({ ...m, [src]: true }))}
+                  />
                 ) : (
-                  <ResponsiveImage src={src} alt="Dokumentasi wakaf" className="w-full h-auto object-cover aspect-square" loading="lazy" />
+                  <div className="aspect-square">
+                    <SkeletonCard lines={2} className="h-full" />
+                    <ResponsiveImage
+                      src={src}
+                      alt="Dokumentasi wakaf"
+                      className="hidden"
+                      loading="lazy"
+                      onLoad={() => setLoaded((m) => ({ ...m, [src]: true }))}
+                    />
+                  </div>
                 )}
               </div>
             </div>

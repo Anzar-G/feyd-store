@@ -10,6 +10,7 @@ export type ResponsiveImageProps = {
   sizes?: string;
   srcSetWebp?: string;
   srcSetAvif?: string;
+  onLoad?: () => void;
 };
 
 const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
@@ -22,6 +23,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   sizes,
   srcSetWebp,
   srcSetAvif,
+  onLoad,
 }) => {
   // If no srcset provided, fallback to simple img with lazy loading
   if (!srcSetWebp && !srcSetAvif) {
@@ -33,6 +35,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         width={width}
         height={height}
         loading={loading}
+        onLoad={onLoad}
       />
     );
   }
