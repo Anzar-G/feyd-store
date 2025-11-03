@@ -113,15 +113,13 @@ const Wakaf: React.FC = () => {
   const isValidDonasi = () => {
     const nameOk = fullName.trim().length > 1;
     const waOk = /^08\d{8,}$/.test(whatsapp.replace(/\D/g, ''));
-    const amt = Number(amount || 0);
-    const amountOk = amt >= 297000; // minimal sesuai paket termurah
-    return nameOk && waOk && amountOk;
+    return nameOk && waOk;
   };
 
   const handleConfirm = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     if (!isValidDonasi()) {
-      alert('Mohon lengkapi Nama, nomor WhatsApp yang valid (mulai 08), dan nominal minimal Rp297.000.');
+      alert('Mohon lengkapi Nama dan nomor WhatsApp yang valid (mulai 08).');
       return;
     }
     try {
@@ -463,7 +461,7 @@ const Wakaf: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700">Nominal Wakaf</label>
                 <div className="mt-1 relative">
                   <Wallet className="w-4 h-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2"/>
-                  <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} className="w-full border rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Pilih atau tulis sendiri (minimal Rp297.000)"/>
+                  <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} className="w-full border rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Tulis nominal wakaf (contoh: 297000)"/>
                 </div>
               </div>
             </div>
