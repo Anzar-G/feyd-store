@@ -44,16 +44,18 @@
 
   // Halaman Keranjang
   const CartPage: React.FC<{ cartCount: number; setCartCount: (n:number)=>void }> = ({ cartCount, setCartCount }) => {
-    const { items } = useCartHook();
+    const { items, totalQty, setQty, remove: removeItem } = useCartHook();
     const [name, setName] = useState('');
     const [wa, setWa] = useState('');
     const [note, setNote] = useState('');
 
     useEffect(()=>{ window.scrollTo({ top: 0, behavior: 'auto' }); }, []);
 
-    const inc = (slug:string) => { setCartQty(slug, (items.find(i=>i.slug===slug)?.qty||0)+1); setCartCount(getCartTotalQty()); };
-    const dec = (slug:string) => { setCartQty(slug, (items.find(i=>i.slug===slug)?.qty||0)-1); setCartCount(getCartTotalQty()); };
-    const remove = (slug:string) => { removeCartItem(slug); setCartCount(getCartTotalQty()); };
+    const inc = (slug:string) => { const q = (items.find(i=>i.slug===slug)?.qty||0)+1; setQty(slug, q); };
+    const dec = (slug:string) => { const q = (items.find(i=>i.slug===slug)?.qty||0)-1; setQty(slug, q); };
+    const remove = (slug:string) => { removeItem(slug); };
+
+    useEffect(() => { setCartCount(totalQty); }, [totalQty, setCartCount]);
 
     const normalizeWa = (s:string) => {
       const d = s.replace(/\D/g,'');
@@ -142,7 +144,7 @@
                       <p className="text-sm text-gray-600">Harga: {formatRupiah(priceMap[it.title]||0)}</p>
                       <div className="mt-2 inline-flex items-center gap-2 bg-gray-50 rounded px-2 py-1">
                         <button onClick={()=>dec(it.slug)} className="px-2 py-0.5 rounded bg-white border">-</button>
-                        <input value={it.qty} onChange={(e)=> { setCartQty(it.slug, Number(e.target.value)||1); setCartCount(getCartTotalQty()); }} className="w-14 text-center border rounded bg-white" />
+                        <input value={it.qty} onChange={(e)=> { const val = Number(e.target.value)||1; setQty(it.slug, val); }} className="w-14 text-center border rounded bg-white" />
                         <button onClick={()=>inc(it.slug)} className="px-2 py-0.5 rounded bg-white border">+</button>
                       </div>
                     </div>
