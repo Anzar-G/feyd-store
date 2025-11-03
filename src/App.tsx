@@ -29,6 +29,7 @@
   import ResponsiveImage from './components/ResponsiveImage';
   import { useCart as useCartHook } from './hooks/useCart';
   import SkeletonCard from './components/SkeletonCard';
+  import Analytics from './components/Analytics';
 
   // Types
   type Testimonial = {
@@ -111,6 +112,15 @@
           body: JSON.stringify(payload),
         });
       } catch {}
+      // GA4 begin_checkout
+      const g = (window as any).gtag;
+      if (typeof g === 'function') {
+        g('event', 'begin_checkout', {
+          currency: 'IDR',
+          value: total,
+          items: items.map(it => ({ item_id: it.slug, item_name: it.title, quantity: it.qty }))
+        });
+      }
       const url = buildMessage();
       window.open(url, '_blank');
     };
@@ -132,7 +142,7 @@
                       <p className="text-sm text-gray-600">Harga: {formatRupiah(priceMap[it.title]||0)}</p>
                       <div className="mt-2 inline-flex items-center gap-2 bg-gray-50 rounded px-2 py-1">
                         <button onClick={()=>dec(it.slug)} className="px-2 py-0.5 rounded bg-white border">-</button>
-                        <input value={it.qty} onChange={(e)=> sync(setCartQty(it.slug, Number(e.target.value)||1))} className="w-14 text-center border rounded bg-white" />
+                        <input value={it.qty} onChange={(e)=> { setCartQty(it.slug, Number(e.target.value)||1); setCartCount(getCartTotalQty()); }} className="w-14 text-center border rounded bg-white" />
                         <button onClick={()=>inc(it.slug)} className="px-2 py-0.5 rounded bg-white border">+</button>
                       </div>
                     </div>
@@ -318,6 +328,18 @@
     // derive price number for JSON-LD
     const priceStr = PRODUCT_PRICING[title]?.price || 'Rp 0';
     const priceNum = Number((priceStr.match(/\d+/g) || []).join('') || 0);
+    useEffect(() => {
+      // GA4 view_item
+      const g = (window as any).gtag;
+      if (typeof g === 'function') {
+        g('event', 'view_item', {
+          currency: 'IDR',
+          value: priceNum,
+          items: [{ item_id: slug, item_name: title, price: priceNum, quantity: 1 }],
+        });
+      }
+    }, [slug, title, priceNum]);
+
     return (
       <div className="min-h-screen bg-[#FDFBF8]">
         <SeoHead
@@ -532,6 +554,11 @@
   };
 
   const App: React.FC = () => {
+    const GA_ID = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID || 'G-YN5SV4C5CT';
+    const track = (name: string, params?: Record<string, any>) => {
+      const g = (window as any).gtag;
+      if (typeof g === 'function') g('event', name, params || {});
+    };
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeTestimonial, setActiveTestimonial] = useState(0);
@@ -545,6 +572,14 @@
     const handleAddToCart = (payload: { slug: string; title: string; cover: string; qty: number }) => {
       addCartItem(payload);
       setCartCount(getCartTotalQty());
+      // GA4 add_to_cart
+      const priceStr = PRODUCT_PRICING[payload.title]?.price || 'Rp 0';
+      const priceNum = Number((priceStr.match(/\d+/g) || []).join('') || 0);
+      track('add_to_cart', {
+        currency: 'IDR',
+        value: priceNum * payload.qty,
+        items: [{ item_id: payload.slug, item_name: payload.title, price: priceNum, quantity: payload.qty }],
+      });
     };
     // Route helpers must be declared before effects that depend on them
     const isLP = !route.startsWith('#/wakaf') && !route.startsWith('#/galeri-wakaf') && !route.startsWith('#/keranjang');
@@ -1029,20 +1064,7 @@
               <img src="/logo.png" alt="Al-Qur'an Kharisma" className="h-10 md:h-12 lg:h-14 w-auto" />
               <img src="/logo-aba.png" alt="Pondok Digital Quran Aba" className="h-10 md:h-12 lg:h-14 w-auto" />
             </a>
-            <nav className="hidden md:flex items-center gap-2 flex-nowrap">
-              {navItems.map((item) => {
-                const isActive = activeSection === item.href;
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => handleSmoothNav(item.href)}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`font-medium ${isActive ? 'bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full' : 'text-gray-700 hover:text-emerald-600'}`}
-                  >
-                    {item.name}
-                  </button>
-                );
-              })}
+            <nav className="hidden md:flex items-center gap-2">
               <button type="button" onClick={() => handleSmoothNav('#koleksi')} className="inline-flex items-center font-medium px-3 py-1 rounded-full text-emerald-700 hover:bg-emerald-50">Produk</button>
               <button type="button" onClick={() => { window.location.hash = '#/keranjang'; }} className="relative inline-flex items-center px-3 py-1 rounded-full text-emerald-700 hover:bg-emerald-50" aria-label="Keranjang">
                 <ShoppingCart className="w-5 h-5" />
