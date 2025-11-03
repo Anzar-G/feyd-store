@@ -110,8 +110,35 @@ const Wakaf: React.FC = () => {
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
 
-  const handleConfirm = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const isValidDonasi = () => {
+    const nameOk = fullName.trim().length > 1;
+    const waOk = /^08\d{8,}$/.test(whatsapp.replace(/\D/g, ''));
+    const amt = Number(amount || 0);
+    const amountOk = amt >= 297000; // minimal sesuai paket termurah
+    return nameOk && waOk && amountOk;
+  };
+
+  const handleConfirm = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
+    if (!isValidDonasi()) {
+      alert('Mohon lengkapi Nama, nomor WhatsApp yang valid (mulai 08), dan nominal minimal Rp297.000.');
+      return;
+    }
+    try {
+      const amt = Number(amount || 0);
+      await fetch('/api/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: 'wakaf',
+          name: fullName,
+          whatsapp: normalizePhone(whatsapp),
+          email,
+          amount: amt,
+          note: notes,
+        }),
+      });
+    } catch {}
     openWhatsApp();
   };
 
