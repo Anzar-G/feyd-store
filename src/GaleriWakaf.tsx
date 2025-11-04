@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ResponsiveImage from './components/ResponsiveImage';
 import SkeletonCard from './components/SkeletonCard';
 
 const GaleriWakaf: React.FC = () => {
+  useEffect(() => {
+    const fb = (window as any).fbq;
+    if (typeof fb === 'function') {
+      fb('track', 'ViewContent', {
+        content_name: 'Galeri Wakaf',
+        content_category: 'gallery',
+      });
+    }
+  }, []);
   const media = [
     // images
-    '/wakaf/wakaf1.jpg','/wakaf/wakaf2.jpg','/wakaf/wakaf3.jpg','/wakaf/wakaf4.jpg','/wakaf/wakaf5.jpg','/wakaf/wakaf6.jpg','/wakaf/wakaf7.jpg','/wakaf/wakaf8.jpg','/wakaf/wakaf9.jpg','/wakaf/wakaf10.jpg',
+    '/wakaf/tinified/wakaf1.jpg','/wakaf/tinified/wakaf2.jpg','/wakaf/tinified/wakaf3.jpg','/wakaf/tinified/wakaf4.jpg','/wakaf/tinified/wakaf5.jpg','/wakaf/tinified/wakaf6.jpg','/wakaf/tinified/wakaf7.jpg','/wakaf/tinified/wakaf8.jpg','/wakaf/tinified/wakaf9.jpg','/wakaf/tinified/wakaf10.jpg',
     // videos
     '/wakaf/wakaf-cover.mp4','/wakaf/wakaf-video1.mp4','/wakaf/wakaf-video2.MOV','/wakaf/wakaf-video3.MOV','/wakaf/wakaf-video4.MOV','/wakaf/wakaf-video5.mp4',
   ];
@@ -34,12 +43,12 @@ const GaleriWakaf: React.FC = () => {
                     onLoad={() => setLoaded((m) => ({ ...m, [src]: true }))}
                   />
                 ) : (
-                  <div className="aspect-square">
+                  <div className="aspect-square relative">
                     <SkeletonCard lines={2} className="h-full" />
                     <ResponsiveImage
                       src={src}
                       alt="Dokumentasi wakaf"
-                      className="hidden"
+                      className="absolute opacity-0 w-0 h-0 overflow-hidden"
                       loading="lazy"
                       onLoad={() => setLoaded((m) => ({ ...m, [src]: true }))}
                     />

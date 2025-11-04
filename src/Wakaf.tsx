@@ -28,6 +28,17 @@ const Counter: React.FC<{ target:number; label:string }> = ({ target, label }) =
 };
 
 const Wakaf: React.FC = () => {
+  const genEventId = () => `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  useEffect(() => {
+    const fb = (window as any).fbq;
+    if (typeof fb === 'function') {
+      fb('track', 'ViewContent', {
+        content_name: 'Wakaf Al-Qur\'an Kharisma',
+        content_category: 'donation',
+      });
+    }
+  }, []);
   const testi: Testi[] = useMemo(() => ([
     { id:1, name:'Siti Nurhaliza', role:'Ibu Rumah Tangga, Jakarta', rating:5, content:'Saya wakafkan 5 mushaf untuk pesantren di Aceh. Alhamdulillah, saya dapat notifikasi foto santri yang menerimanya. Rasanya senang sekali bisa berkontribusi.' },
     { id:2, name:'Muhammad Faisal', role:'Mahasiswa, Bandung', rating:4.5, content:'Saya wakafkan 1 mushaf tiap bulan. Ini cara saya beramal rutin tanpa harus keluar rumah. Semoga jadi amal jariyah yang tak putus.' },
@@ -122,8 +133,8 @@ const Wakaf: React.FC = () => {
       alert('Mohon lengkapi Nama dan nomor WhatsApp yang valid (mulai 08).');
       return;
     }
+    const amt = Number(amount || 0);
     try {
-      const amt = Number(amount || 0);
       await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,6 +148,25 @@ const Wakaf: React.FC = () => {
         }),
       });
     } catch {}
+
+    const fb = (window as any).fbq;
+    if (typeof fb === 'function') {
+      const leadEventId = genEventId();
+      fb('track', 'Lead', {
+        content_name: 'Wakaf Al-Qur\'an Kharisma',
+        content_category: 'donation',
+        value: amt,
+        currency: 'IDR',
+      }, { eventID: leadEventId });
+
+      const contactEventId = genEventId();
+      fb('track', 'Contact', {
+        content_category: 'donation',
+        value: amt,
+        currency: 'IDR',
+      }, { eventID: contactEventId });
+    }
+
     openWhatsApp();
   };
 
@@ -231,7 +261,7 @@ const Wakaf: React.FC = () => {
           <div>
             <div className="rounded-xl overflow-hidden shadow-xl border bg-white">
               <img
-                src="/wakaf/wakaf-cover1.jpg"
+                src="/wakaf/tinified/wakaf-cover1.jpg"
                 alt="Penyerahan mushaf ke santri"
                 className="w-full h-auto object-cover aspect-[4/3]"
               />
