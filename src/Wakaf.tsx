@@ -29,6 +29,10 @@ const Counter: React.FC<{ target:number; label:string }> = ({ target, label }) =
 
 const Wakaf: React.FC = () => {
   const genEventId = () => `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const readUtm = (): Record<string, string> => {
+    if (typeof window === 'undefined') return {};
+    try { return JSON.parse(localStorage.getItem('first_utm_v1') || '{}') as Record<string,string>; } catch { return {}; }
+  };
 
   useEffect(() => {
     const fb = (window as any).fbq;
@@ -73,6 +77,15 @@ const Wakaf: React.FC = () => {
   const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const selectPackage = (nominal:number) => {
     setAmount(String(nominal));
+    const fb = (window as any).fbq;
+    if (typeof fb === 'function') {
+      fb('track', 'AddToCart', {
+        content_name: 'Wakaf Al-Qur\'an Kharisma',
+        content_category: 'donation',
+        value: nominal,
+        currency: 'IDR',
+      });
+    }
     setTimeout(()=>{
       const el = document.getElementById('wakaf-form');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -92,7 +105,9 @@ const Wakaf: React.FC = () => {
       'Saya akan mengirimkan bukti transfer di chat ini 🙏',
       'Mohon konfirmasi setelah bukti transfer diterima.'
     ].filter(Boolean).join('\n');
-    return lines;
+    const utm = readUtm();
+    const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+    return lines + utmStr;
   };
   const waText = buildWaMessage();
   const adminNumbers = ['6287879713808','6282221025449'];
@@ -165,9 +180,14 @@ const Wakaf: React.FC = () => {
         value: amt,
         currency: 'IDR',
       }, { eventID: contactEventId });
-    }
 
-    openWhatsApp();
+      fb('trackCustom', 'WhatsAppClick', {
+        source: 'wakaf_confirm',
+        value: amt,
+        currency: 'IDR',
+      });
+    }
+    setTimeout(() => { openWhatsApp(); }, 150);
   };
 
   const openWhatsApp = () => {
@@ -264,6 +284,10 @@ const Wakaf: React.FC = () => {
                 src="/wakaf/tinified/wakaf-cover1.jpg"
                 alt="Penyerahan mushaf ke santri"
                 className="w-full h-auto object-cover aspect-[4/3]"
+                loading="eager"
+                width={1200}
+                height={900}
+                fetchPriority="high"
               />
             </div>
           </div>

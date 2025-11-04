@@ -797,6 +797,33 @@
       const g = (window as any).gtag;
       if (typeof g === 'function') g('event', name, params || {});
     };
+    useEffect(() => {
+      const onHash = () => {
+        const fb = (window as any).fbq;
+        if (typeof fb === 'function') fb('track', 'PageView');
+        const g = (window as any).gtag;
+        if (typeof g === 'function') g('event', 'page_view', { page_location: window.location.href });
+      };
+      window.addEventListener('hashchange', onHash);
+      return () => window.removeEventListener('hashchange', onHash);
+    }, []);
+    useEffect(() => {
+      const fired = {25:false,50:false,75:false,100:false} as Record<number, boolean>;
+      const onScroll = () => {
+        const h = document.documentElement;
+        const max = (h.scrollHeight - h.clientHeight) || 1;
+        const pct = Math.min(100, Math.round((h.scrollTop / max) * 100));
+        const fb = (window as any).fbq;
+        [25,50,75,100].forEach(p => {
+          if (!fired[p] && pct >= p) {
+            fired[p] = true;
+            if (typeof fb === 'function') fb('trackCustom', 'ScrollDepth', { percent: p });
+          }
+        });
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      return () => window.removeEventListener('scroll', onScroll as any);
+    }, []);
     // ... rest of the code remains the same ...
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
