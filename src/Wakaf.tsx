@@ -65,6 +65,18 @@ const Wakaf: React.FC = () => {
   const [orgEmail, setOrgEmail] = useState('');
   const [reason, setReason] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const ADMIN_CONTACTS = [
+    { name: 'Admin Ustd Abdillah', phone: '6287879713808' },
+    { name: 'Admin Mas Nizar', phone: '6282221025449' },
+  ];
+  const [selectedAdmin, setSelectedAdmin] = useState<string>(ADMIN_CONTACTS[0].phone);
+  const isOnlineNow = () => {
+    const now = new Date();
+    const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+    const wib = new Date(utcMs + 7 * 3600000);
+    const h = wib.getHours();
+    return h >= 6 && h < 22;
+  };
   const [hash, setHash] = useState<string>(typeof window !== 'undefined' ? window.location.hash : '#');
   useEffect(() => {
     const onHash = () => setHash(window.location.hash || '#');
@@ -110,7 +122,6 @@ const Wakaf: React.FC = () => {
     return lines + utmStr;
   };
   const waText = buildWaMessage();
-  const adminNumbers = ['6287879713808','6282221025449'];
   const normalizePhone = (s: string) => {
     const d = s.replace(/\D/g, '');
     if (d.startsWith('62')) return d;
@@ -191,10 +202,8 @@ const Wakaf: React.FC = () => {
   };
 
   const openWhatsApp = () => {
-    adminNumbers.forEach((num) => {
-      const url = `https://wa.me/${num}?text=${encodeURIComponent(waText)}`;
-      window.open(url, '_blank');
-    });
+    const url = `https://wa.me/${selectedAdmin}?text=${encodeURIComponent(waText)}`;
+    window.open(url, '_blank');
     
     // Reset form
     setFullName('');
@@ -559,7 +568,32 @@ const Wakaf: React.FC = () => {
                 <li className="flex"><Check className="w-4 h-4 text-emerald-600 mr-2"/> Semua transaksi tercatat dan dilaporkan secara transparan.</li>
               </ul>
             </div>
-            <a href={`https://wa.me/6287879713808?text=${encodeURIComponent(waText)}`} onClick={handleConfirm} target="_blank" rel="noopener noreferrer" className="btn-primary mt-4 w-full py-3 text-lg text-center inline-block">🌿 Konfirmasi Pembayaran via WhatsApp — Proses Cepat & Aman</a>
+            <div className="mt-3">
+              <p className="text-sm font-medium text-gray-700 mb-2">Pilih admin tujuan:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {ADMIN_CONTACTS.map((adm) => {
+                  const online = isOnlineNow();
+                  const active = selectedAdmin===adm.phone;
+                  return (
+                    <button
+                      key={adm.phone}
+                      type="button"
+                      onClick={() => setSelectedAdmin(adm.phone)}
+                      className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{adm.name.replace('Admin ','')}</span>
+                        <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
+                          {online ? 'Online' : 'Offline — balas di jam kerja'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <a href={`https://wa.me/${selectedAdmin}?text=${encodeURIComponent(waText)}`} onClick={handleConfirm} target="_blank" rel="noopener noreferrer" className="btn-primary mt-3 w-full py-3 text-lg text-center inline-block">🌿 Konfirmasi Pembayaran via WhatsApp — Proses Cepat & Aman</a>
             <div className="mt-3 flex justify-center">
               <a href="#" onClick={(e)=>{e.preventDefault(); window.location.hash = '#';}} className="btn-secondary inline-flex items-center">
                 ← Kembali ke Beranda
@@ -657,10 +691,8 @@ const Wakaf: React.FC = () => {
                     setErrors(errs);
                     if (Object.keys(errs).length === 0) {
                       const text = buildRequestWaText();
-                      adminNumbers.forEach((num) => {
-                        const url = `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
-                        window.open(url, '_blank');
-                      });
+                      const url = `https://wa.me/${selectedAdmin}?text=${encodeURIComponent(text)}`;
+                      window.open(url, '_blank');
                       setTimeout(() => { window.location.hash = '#/wakaf/permintaan/terima-kasih'; }, 300);
                     }
                   }}
@@ -669,6 +701,31 @@ const Wakaf: React.FC = () => {
                 >
                   Kirim Permohonan
                 </button>
+                <div className="mt-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Pilih admin tujuan:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ADMIN_CONTACTS.map((adm) => {
+                      const online = isOnlineNow();
+                      const active = selectedAdmin===adm.phone;
+                      return (
+                        <button
+                          key={adm.phone}
+                          type="button"
+                          onClick={() => setSelectedAdmin(adm.phone)}
+                          className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{adm.name.replace('Admin ','')}</span>
+                            <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                              <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
+                              {online ? 'Online' : 'Offline — balas di jam kerja'}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

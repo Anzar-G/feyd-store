@@ -60,6 +60,7 @@
     variant = 'horizontal',
     theme = 'light',
   }) => {
+    const online = isOnlineNow();
     return (
       <div className="w-full">
         <div className="text-center mb-4">
@@ -83,9 +84,9 @@
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900">{admin.name}</p>
                 <p className="text-xs text-gray-600 truncate">{admin.role}</p>
-                <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                  <span>Online</span>
+                <div className={`flex items-center gap-1 text-xs mt-1 ${online ? 'text-emerald-600' : 'text-gray-500'}`}>
+                  <div className={`w-2 h-2 rounded-full ${online ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+                  <span title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>{online ? 'Online' : 'Offline — balas di jam kerja'}</span>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition flex-shrink-0" />
@@ -338,19 +339,26 @@
                     <>
                       <p className="text-sm text-gray-600 mb-2 text-center">Pilih admin untuk checkout:</p>
                       <div className="grid grid-cols-2 gap-2">
-                        {ADMIN_CONTACTS.map((admin) => (
-                          <a
-                            key={admin.phone}
-                            href={buildMessage().replace('6287879713808', admin.phone)}
-                            onClick={(e) => handleCheckoutForAdmin(admin.phone, e)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition"
-                          >
-                            <Phone className="w-5 h-5" />
-                            <span className="text-xs">{admin.name.replace('Admin ', '')}</span>
-                          </a>
-                        ))}
+                        {ADMIN_CONTACTS.map((admin) => {
+                          const online = isOnlineNow();
+                          return (
+                            <a
+                              key={admin.phone}
+                              href={buildMessage().replace('6287879713808', admin.phone)}
+                              onClick={(e) => handleCheckoutForAdmin(admin.phone, e)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition"
+                            >
+                              <Phone className="w-5 h-5" />
+                              <span className="text-xs">{admin.name.replace('Admin ', '')}</span>
+                              <span className={`text-[10px] font-normal flex items-center gap-1 ${online ? 'text-emerald-100' : 'text-white/70'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                                <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-white/50'}`}></span>
+                                {online ? 'Online' : 'Offline — balas di jam kerja'}
+                              </span>
+                            </a>
+                          );
+                        })}
                       </div>
                     </>
                   ) : (
@@ -448,16 +456,26 @@
               <div className="mt-3">
                 <p className="text-sm text-gray-700 font-medium mb-2">Pilih admin tujuan:</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {ADMIN_CONTACTS.map((admin) => (
-                    <button
-                      key={admin.phone}
-                      type="button"
-                      onClick={() => setSelectedAdmin(admin.phone)}
-                      className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition ${selectedAdmin===admin.phone ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
-                    >
-                      {admin.name.replace('Admin ','')}
-                    </button>
-                  ))}
+                  {ADMIN_CONTACTS.map((admin) => {
+                    const online = isOnlineNow();
+                    const active = selectedAdmin===admin.phone;
+                    return (
+                      <button
+                        key={admin.phone}
+                        type="button"
+                        onClick={() => setSelectedAdmin(admin.phone)}
+                        className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{admin.name.replace('Admin ','')}</span>
+                          <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
+                            {online ? 'Online' : 'Offline — balas di jam kerja'}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -583,6 +601,13 @@
       status: 'online',
     },
   ];
+  const isOnlineNow = () => {
+    const now = new Date();
+    const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+    const wib = new Date(utcMs + 7 * 3600000); // UTC+7
+    const h = wib.getHours();
+    return h >= 6 && h < 22;
+  };
 
   // UTM helpers (persist first-touch)
   const UTM_KEY = 'first_utm_v1';
@@ -657,6 +682,7 @@
     const [qty, setQty] = useState<number>(1);
     const [coverLoaded, setCoverLoaded] = useState(false);
     const [avatarLoaded, setAvatarLoaded] = useState(false);
+    const [selectedAdmin, setSelectedAdmin] = useState<string>(ADMIN_CONTACTS[0]?.phone || '6287879713808');
     // derive price number for JSON-LD
     const priceStr = PRODUCT_PRICING[title]?.price || 'Rp 0';
     const priceNum = Number((priceStr.match(/\d+/g) || []).join('') || 0);
@@ -900,6 +926,31 @@
                   <input value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                   <input value={address} onChange={(e)=>setAddress(e.target.value)} placeholder="Alamat lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                 </div>
+                <div className="mt-3">
+                  <p className="text-sm text-white/90 font-medium mb-2">Pilih admin tujuan:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ADMIN_CONTACTS.map((admin) => {
+                      const online = isOnlineNow();
+                      const active = selectedAdmin===admin.phone;
+                      return (
+                        <button
+                          key={admin.phone}
+                          type="button"
+                          onClick={() => setSelectedAdmin(admin.phone)}
+                          className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-white text-[#4A6741] border-white' : 'bg-white/20 text-white border-white/30 hover:bg-white/30'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{admin.name.replace('Admin ','')}</span>
+                            <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-600' : 'text-emerald-100') : 'text-white/70'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                              <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? (active ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-300 animate-pulse') : 'bg-white/50'}`}></span>
+                              {online ? 'Online' : 'Offline — balas di jam kerja'}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div className="mt-4">
                   <button
                     type="button"
@@ -943,7 +994,7 @@
                         });
                         fb('track', 'Contact', { content_name: title, content_ids: [slug], content_type: 'product', currency: 'IDR', value: val });
                       }
-                      window.open(`https://wa.me/6287879713808?text=${encodeURIComponent(msgLines)}`, '_blank');
+                      window.open(`https://wa.me/${selectedAdmin}?text=${encodeURIComponent(msgLines)}`, '_blank');
                     }}
                     className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canQuickOrder? 'bg-white text-[#4A6741] hover:bg-gray-100' : 'bg-white/40 text-white/70 cursor-not-allowed'}`}
                   >
