@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ResponsiveImage from './components/ResponsiveImage';
 import SkeletonCard from './components/SkeletonCard';
 
@@ -12,6 +12,7 @@ const GaleriWakaf: React.FC = () => {
       });
     }
   }, []);
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const media = [
     // images
     '/wakaf/tinified/wakaf1.jpg','/wakaf/tinified/wakaf2.jpg','/wakaf/tinified/wakaf3.jpg','/wakaf/tinified/wakaf4.jpg','/wakaf/tinified/wakaf5.jpg','/wakaf/tinified/wakaf6.jpg','/wakaf/tinified/wakaf7.jpg','/wakaf/tinified/wakaf8.jpg','/wakaf/tinified/wakaf9.jpg','/wakaf/tinified/wakaf10.jpg',
@@ -33,7 +34,21 @@ const GaleriWakaf: React.FC = () => {
             <div key={src} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-2">
               <div className="rounded-lg overflow-hidden">
                 {isVideo(src) ? (
-                  <video src={src} className="w-full h-auto object-cover aspect-video" controls preload="metadata" playsInline />
+                  <video
+                    src={src}
+                    className="w-full h-auto object-cover aspect-video"
+                    controls
+                    preload="metadata"
+                    playsInline
+                    ref={(el) => { videoRefs.current[src] = el; }}
+                    onPlay={() => {
+                      Object.entries(videoRefs.current).forEach(([key, vid]) => {
+                        if (key !== src && vid && !vid.paused) {
+                          vid.pause();
+                        }
+                      });
+                    }}
+                  />
                 ) : loaded[src] ? (
                   <ResponsiveImage
                     src={src}
