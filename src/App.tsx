@@ -388,10 +388,10 @@
       const utm = readUtm();
       const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
       const lines = [
-        'Assalamu’alaikum, saya ingin memesan Al-Qur’an Kharisma:',
+        'Assalamu’alaikum, saya ingin memesan Al-Qur’an Kharisma, apakah masih tersedia?:',
         `Jumlah: ${Math.max(1, qty)} pcs`,
         `Harga satuan: ${formatRupiah(price)}`,
-        `Estimasi total: ${formatRupiah(total)} (belum ongkir)`,
+        `Estimasi total: ${formatRupiah(total)} (belum termasuk ongkir)`,
         '',
         `Nama: ${name}`,
         `WhatsApp: ${normalizeWa(wa)}`,
@@ -399,7 +399,7 @@
         note ? `Catatan: ${note}` : undefined,
         utmStr || undefined,
         '',
-        'Saya akan mengirimkan bukti transfer setelah pembayaran.',
+        'Saya akan mengirimkan bukti transfer setelah pembayaran dan setelah terkonfirmasi ketersedian produk.',
       ].filter(Boolean).join('\n');
       return `https://wa.me/${selectedAdmin}?text=${encodeURIComponent(lines)}`;
     };
