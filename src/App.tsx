@@ -324,7 +324,7 @@
                 <h2 className="font-semibold text-gray-900">Data Pemesan</h2>
                 <div className="mt-3 space-y-2">
                   <input value={name} onChange={(e)=>setName(e.target.value)} placeholder="Nama Lengkap" className="w-full border rounded px-3 py-2" />
-                  <input value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp (contoh: 081234567890)" className="w-full border rounded px-3 py-2" />
+                  <input type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp (contoh: 081234567890)" className="w-full border rounded px-3 py-2" />
                   <textarea value={note} onChange={(e)=>setNote(e.target.value)} placeholder="Catatan (opsional)" className="w-full border rounded px-3 py-2 h-20" />
                 </div>
                 <div className="mt-3 border-t pt-3">
@@ -923,7 +923,7 @@
                 <div className="font-semibold text-white">Pesan Cepat</div>
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
                   <input value={name} onChange={(e)=>setName(e.target.value)} placeholder="Nama lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
-                  <input value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
+                  <input type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                   <input value={address} onChange={(e)=>setAddress(e.target.value)} placeholder="Alamat lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                 </div>
                 <div className="mt-3">

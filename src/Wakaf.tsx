@@ -517,7 +517,7 @@ const Wakaf: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700">Nomor WhatsApp</label>
                 <div className="mt-1 relative">
                   <Phone className="w-4 h-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2"/>
-                  <input value={whatsapp} onChange={(e)=>setWhatsapp(e.target.value)} className="w-full border rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300" placeholder="081234567890 (untuk konfirmasi & update penyaluran)"/>
+                  <input type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" value={whatsapp} onChange={(e)=>setWhatsapp(e.target.value)} className="w-full border rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300" placeholder="081234567890 (untuk konfirmasi & update penyaluran)"/>
                 </div>
               </div>
               <div>
@@ -659,7 +659,7 @@ const Wakaf: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Nomor WhatsApp Aktif</label>
-                  <input value={orgWa} onChange={(e)=>setOrgWa(e.target.value)} placeholder="081234567890" className="mt-1 w-full border rounded-lg px-3 py-2" />
+                  <input type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" value={orgWa} onChange={(e)=>setOrgWa(e.target.value)} placeholder="081234567890" className="mt-1 w-full border rounded-lg px-3 py-2" />
                   {errors.orgWa && <p className="text-xs text-rose-600 mt-1">{errors.orgWa}</p>}
                 </div>
                 <div>
