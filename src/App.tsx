@@ -1248,6 +1248,14 @@
       return () => clearInterval(id);
     }, []);
 
+    const promoActive = (countdown.days + countdown.hours + countdown.minutes + countdown.seconds) > 0;
+    const [selectedWaitAdmin, setSelectedWaitAdmin] = useState<string>(ADMIN_CONTACTS[0].phone);
+    const selectedWaitAdminObj = useMemo(() => ADMIN_CONTACTS.find(a => a.phone === selectedWaitAdmin), [selectedWaitAdmin]);
+    const waitlistMessage = useMemo(() => {
+      const label = (selectedWaitAdminObj?.name || 'Admin').replace('Admin ', '');
+      return `Assalamu’alaikum, saya tertarik promo Al-Qur’an Kharisma. Tolong infokan saat promo buka lagi ya ${label}. InsyaAllah saya langsung order. Terima kasih 😊`;
+    }, [selectedWaitAdminObj]);
+
     const navItems: NavItem[] = useMemo(() => ([
       { name: 'Masalah', href: '#masalah' },
       { name: 'Solusi', href: '#solusi' },
@@ -2166,12 +2174,18 @@
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-center">Mulai Perjalanan Membaca Al-Qur'an dengan Lebih Baik</h2>
                 <div className="mt-2 flex items-center justify-center text-sm md:text-base">
-                  <div className="bg-white/15 text-white px-3 py-1 rounded-full flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span>
-                      Promo berakhir dalam: {countdown.days}h {countdown.hours}j {countdown.minutes}m {countdown.seconds}d
-                    </span>
-                  </div>
+                  {promoActive ? (
+                    <div className="bg-white/15 text-white px-3 py-1 rounded-full flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>
+                        Promo berakhir dalam: {countdown.days}h {countdown.hours}j {countdown.minutes}m {countdown.seconds}d
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="bg-white/15 text-white px-3 py-1 rounded-full">
+                      Promo telah berakhir
+                    </div>
+                  )}
                 </div>
                 <p className="mt-3 text-center text-lg opacity-90">Dapatkan Al-Qur'an Kharisma hari ini dan rasakan perbedaannya.</p>
                 <p className="mt-1 text-center text-sm opacity-90">
@@ -2187,27 +2201,39 @@
               <Reveal delay={120}>
                 <div className="mt-8 max-w-3xl mx-auto bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-8">
                   <div className="grid md:grid-cols-3 items-end gap-6">
-                    <div className="text-center md:text-left">
-                      <p className="text-sm opacity-80">Harga Normal</p>
-                      <p className="text-2xl font-bold line-through">Rp 350.000</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm opacity-80">Harga Spesial</p>
-                      <p className="text-4xl font-extrabold">Rp 297.000</p>
-                      <span className="mt-1 inline-block bg-gold-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
-                        Hemat Rp 53.000
-                      </span>
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold mb-2">Bonus:</p>
-                      <ul className="text-sm space-y-1">
-                        <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> WA grup Indonesia Bisa Mengaji</li>
-                        <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> Bimbingan mengaji 1 bulan</li>
-                        <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> Buku saku dzikir</li>
-                        <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> E-book premium</li>
-                      </ul>
-                      <p className="text-xs text-emerald-100 mt-2">Promo terbatas hingga akhir bulan</p>
-                    </div>
+                    {promoActive ? (
+                      <>
+                        <div className="text-center md:text-left">
+                          <p className="text-sm opacity-80">Harga Normal</p>
+                          <p className="text-2xl font-bold line-through">Rp 350.000</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm opacity-80">Harga Spesial</p>
+                          <p className="text-4xl font-extrabold">Rp 297.000</p>
+                          <span className="mt-1 inline-block bg-gold-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
+                            Hemat Rp 53.000
+                          </span>
+                        </div>
+                        <div className="text-left">
+                          <p className="font-semibold mb-2">Bonus:</p>
+                          <ul className="text-sm space-y-1">
+                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> WA grup Indonesia Bisa Mengaji</li>
+                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> Bimbingan mengaji 1 bulan</li>
+                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> Buku saku dzikir</li>
+                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> E-book premium</li>
+                          </ul>
+                          <p className="text-xs text-emerald-100 mt-2">Promo terbatas hingga akhir bulan</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-center md:text-left col-span-3">
+                          <p className="text-sm opacity-80">Harga Normal</p>
+                          <p className="text-4xl font-extrabold">Rp 350.000</p>
+                          <p className="text-xs text-emerald-100 mt-2">Promo saat ini tidak aktif</p>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Primary action buttons */}
@@ -2222,14 +2248,50 @@
                     >
                       <ShoppingCart className="w-5 h-5 mr-2" /> Tambah ke Keranjang
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => { window.location.hash = '#/pesan-quran'; }}
-                      className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
-                      aria-label="Isi Form & Pesan via WhatsApp"
-                    >
-                      <Phone className="w-5 h-5 mr-2" /> Isi Form & Pesan via WhatsApp
-                    </button>
+                    {promoActive ? (
+                      <button
+                        type="button"
+                        onClick={() => { window.location.hash = '#/pesan-quran'; }}
+                        className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
+                        aria-label="Isi Form & Pesan via WhatsApp"
+                      >
+                        <Phone className="w-5 h-5 mr-2" /> Isi Form & Pesan via WhatsApp
+                      </button>
+                    ) : (
+                      <div>
+                        <div className="mb-2 grid grid-cols-2 gap-2">
+                          {ADMIN_CONTACTS.map((adm) => {
+                            const online = isOnlineNow();
+                            const active = selectedWaitAdmin===adm.phone;
+                            return (
+                              <button
+                                key={adm.phone}
+                                type="button"
+                                onClick={() => setSelectedWaitAdmin(adm.phone)}
+                                className={`w-full border rounded-full px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-white text-emerald-700 border-white' : 'bg-white/20 text-white border-white/40 hover:bg-white/30'}`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{adm.name.replace('Admin ','')}</span>
+                                  <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-600' : 'text-emerald-100') : 'text-white/70'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? (active ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-300 animate-pulse') : 'bg-white/50'}`}></span>
+                                    {online ? 'Online' : 'Offline — balas di jam kerja'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <a
+                          href={`https://wa.me/${selectedWaitAdmin}?text=${encodeURIComponent(waitlistMessage)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
+                          aria-label="Daftar Tunggu Promo"
+                        >
+                          <Phone className="w-5 h-5 mr-2" /> Daftar Tunggu Promo Berikutnya
+                        </a>
+                      </div>
+                    )}
                     <div className="relative group">
                       <a
                         href="#"
