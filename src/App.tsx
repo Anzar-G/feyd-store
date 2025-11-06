@@ -42,6 +42,64 @@
     avatarUrl?: string;
   };
 
+  // Halaman pilih admin untuk daftar tunggu promo
+  const WaitlistAdminPage: React.FC = () => {
+    useEffect(()=>{ window.scrollTo({ top: 0, behavior: 'auto' }); }, []);
+    const [selectedAdmin, setSelectedAdmin] = useState<string>(ADMIN_CONTACTS[0].phone);
+    const selected = useMemo(() => ADMIN_CONTACTS.find(a=>a.phone===selectedAdmin), [selectedAdmin]);
+    const online = isOnlineNow();
+    const message = useMemo(()=>{
+      const label = (selected?.name||'Admin').replace('Admin ','');
+      return `Assalamu’alaikum, saya tertarik promo Al-Qur’an Kharisma. Tolong infokan saat promo buka lagi ya ${label}. InsyaAllah saya langsung order. Terima kasih 😊`;
+    }, [selected]);
+    return (
+      <main className="pt-24 pb-16 min-h-screen bg-gray-50">
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => { if (window.history.length>1) window.history.back(); else window.location.hash = '#'; }} aria-label="Kembali" className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800">
+              <ChevronLeft className="w-5 h-5" /> <span className="font-semibold">Kembali</span>
+            </button>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Pilih Admin</h1>
+          </div>
+          <div className="mt-6 space-y-3">
+            {ADMIN_CONTACTS.map((adm)=>{
+              const active = selectedAdmin===adm.phone;
+              return (
+                <button
+                  key={adm.phone}
+                  type="button"
+                  onClick={()=>setSelectedAdmin(adm.phone)}
+                  className={`w-full bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-4 px-5 min-h-[52px] rounded-xl flex items-center justify-between transition border ${active ? 'border-emerald-600 ring-2 ring-emerald-600 bg-emerald-50' : 'border-emerald-100'}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 font-bold">{adm.avatar}</span>
+                    <span className="text-left">
+                      <span className="block font-semibold">{adm.name.replace('Admin ','')}</span>
+                      <span className="block text-xs text-gray-600">{adm.role}</span>
+                    </span>
+                  </span>
+                  <span className={`text-xs inline-flex items-center gap-1 ${online ? 'text-emerald-600' : 'text-gray-500'}`}>
+                    <span className={`inline-block w-2 h-2 rounded-full ${online ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`}></span>
+                    {online ? 'Online' : 'Offline'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <a
+            href={`https://wa.me/${selectedAdmin}?text=${encodeURIComponent(message)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 w-full inline-flex items-center justify-center gap-3 py-4 px-5 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            Kirim ke { (selected?.name||'Admin').replace('Admin ','') } via WhatsApp
+            <Phone className="w-5 h-5" />
+          </a>
+        </section>
+      </main>
+    );
+  };
+
   // ============================================
   // ADMIN SELECTOR COMPONENT
   // ============================================
@@ -335,40 +393,32 @@
                   <p className="text-xs text-gray-500 mt-1">Belum termasuk ongkos kirim.</p>
                 </div>
                 <div className="mt-4">
-                  {canCheckout ? (
-                    <>
-                      <p className="text-sm text-gray-600 mb-2 text-center">Pilih admin untuk checkout:</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {ADMIN_CONTACTS.map((admin) => {
-                          const online = isOnlineNow();
-                          return (
-                            <a
-                              key={admin.phone}
-                              href={buildMessage().replace('6287879713808', admin.phone)}
-                              onClick={(e) => handleCheckoutForAdmin(admin.phone, e)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition"
-                            >
-                              <Phone className="w-5 h-5" />
-                              <span className="text-xs">{admin.name.replace('Admin ', '')}</span>
-                              <span className={`text-[10px] font-normal flex items-center gap-1 ${online ? 'text-emerald-100' : 'text-white/70'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
-                                <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-white/50'}`}></span>
-                                {online ? 'Online' : 'Offline — balas di jam kerja'}
-                              </span>
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => alert('Lengkapi nama, nomor WhatsApp yang valid, dan pastikan keranjang tidak kosong.')}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-gray-200 text-gray-500 cursor-not-allowed"
-                    >
-                      Lengkapi Data Dulu
-                    </button>
-                  )}
+                  <p className="text-sm text-gray-600 mb-2 text-center">Pilih admin untuk checkout:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ADMIN_CONTACTS.map((admin) => {
+                      const online = isOnlineNow();
+                      const base = canCheckout
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed';
+                      return (
+                        <a
+                          key={admin.phone}
+                          href={buildMessage().replace('6287879713808', admin.phone)}
+                          onClick={(e) => handleCheckoutForAdmin(admin.phone, e)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl font-semibold transition ${base}`}
+                        >
+                          <Phone className="w-5 h-5" />
+                          <span className="text-xs">{admin.name.replace('Admin ', '')}</span>
+                          <span className={`text-[10px] font-normal flex items-center gap-1 ${canCheckout ? (online ? 'text-emerald-100' : 'text-white/70') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-white/50'}`}></span>
+                            {online ? 'Online' : 'Offline — balas di jam kerja'}
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -452,7 +502,7 @@
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Belum termasuk ongkos kirim.</p>
               </div>
-              {/* Admin selection within form */}
+              {/* Admin selection within form (rectangular buttons) */}
               <div className="mt-3">
                 <p className="text-sm text-gray-700 font-medium mb-2">Pilih admin tujuan:</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -464,7 +514,7 @@
                         key={admin.phone}
                         type="button"
                         onClick={() => setSelectedAdmin(admin.phone)}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                        className={`w-full border rounded-xl px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
                       >
                         <div className="flex items-center justify-between">
                           <span>{admin.name.replace('Admin ','')}</span>
@@ -478,10 +528,9 @@
                   })}
                 </div>
               </div>
-
               <a
                 href={canSend ? buildMessage() : undefined}
-                onClick={(e)=>{ if(!canSend){ e.preventDefault(); alert('Lengkapi nama, nomor WA valid, dan alamat.'); return; } const fb=(window as any).fbq; if(typeof fb==='function'){ const q=Math.max(1, qty); fb('track','InitiateCheckout',{ content_ids: ['quran-kharisma'], contents: [{ id: 'quran-kharisma', quantity: q }], num_items: q, content_type:'product', currency:'IDR', value: total }); fb('track','AddPaymentInfo',{ content_ids: ['quran-kharisma'], contents: [{ id: 'quran-kharisma', quantity: q }], num_items: q, content_type:'product', currency:'IDR', value: total }); fb('track','Contact',{content_name:'Al-Qur’an Kharisma', content_type:'product', value: total, currency:'IDR'}); } }}
+                onClick={(e)=>{ if(!canSend){ e.preventDefault(); alert('Lengkapi nama, nomor WA valid, dan alamat.'); } }}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canSend? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
@@ -926,31 +975,6 @@
                   <input type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                   <input value={address} onChange={(e)=>setAddress(e.target.value)} placeholder="Alamat lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                 </div>
-                <div className="mt-3">
-                  <p className="text-sm text-white/90 font-medium mb-2">Pilih admin tujuan:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ADMIN_CONTACTS.map((admin) => {
-                      const online = isOnlineNow();
-                      const active = selectedAdmin===admin.phone;
-                      return (
-                        <button
-                          key={admin.phone}
-                          type="button"
-                          onClick={() => setSelectedAdmin(admin.phone)}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-white text-[#4A6741] border-white' : 'bg-white/20 text-white border-white/30 hover:bg-white/30'}`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span>{admin.name.replace('Admin ','')}</span>
-                            <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-600' : 'text-emerald-100') : 'text-white/70'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
-                              <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? (active ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-300 animate-pulse') : 'bg-white/50'}`}></span>
-                              {online ? 'Online' : 'Offline — balas di jam kerja'}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
                 <div className="mt-4">
                   <button
                     type="button"
@@ -962,15 +986,7 @@
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
-                            source: 'quick-order',
-                            slug,
-                            title,
-                            qty,
-                            total,
-                            name,
-                            whatsapp: wa,
-                            address,
-                            utm: readUtm(),
+                            source: 'quick-order', slug, title, qty, total, name, whatsapp: wa, address, utm: readUtm(),
                           }),
                         });
                       } catch {}
@@ -981,19 +997,7 @@
                         `WhatsApp: ${wa}`,
                         `Alamat: ${address}`,
                         `Total estimasi: Rp ${ (priceNum * Math.max(1, qty)).toLocaleString('id-ID') } (belum ongkir)`,
-                        `\nSaya akan mengirimkan bukti transfer setelah pembayaran.`,
                       ].join('\n');
-                      const fb = (window as any).fbq;
-                      if (typeof fb === 'function') {
-                        const qtyNow = Math.max(1, qty);
-                        const val = priceNum * qtyNow;
-                        fb('track', 'AddPaymentInfo', {
-                          currency: 'IDR',
-                          value: val,
-                          items: [{ item_id: slug, item_name: title, price: priceNum, quantity: qtyNow }],
-                        });
-                        fb('track', 'Contact', { content_name: title, content_ids: [slug], content_type: 'product', currency: 'IDR', value: val });
-                      }
                       window.open(`https://wa.me/${selectedAdmin}?text=${encodeURIComponent(msgLines)}`, '_blank');
                     }}
                     className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canQuickOrder? 'bg-white text-[#4A6741] hover:bg-gray-100' : 'bg-white/40 text-white/70 cursor-not-allowed'}`}
@@ -1005,8 +1009,6 @@
               </div>
             </div>
           </section>
-
-          
         </main>
       </div>
     );
@@ -1195,11 +1197,12 @@
       } catch {}
     };
     // Route helpers must be declared before effects that depend on them
-    const isLP = !route.startsWith('#/wakaf') && !route.startsWith('#/galeri-wakaf') && !route.startsWith('#/keranjang') && !route.startsWith('#/pesan-quran');
+    const isLP = !route.startsWith('#/wakaf') && !route.startsWith('#/galeri-wakaf') && !route.startsWith('#/keranjang') && !route.startsWith('#/pesan-quran') && !route.startsWith('#/pilih-admin');
     const isWakaf = route.startsWith('#/wakaf');
     const isGaleri = route.startsWith('#/galeri-wakaf');
     const isKeranjang = route.startsWith('#/keranjang');
     const isPesanQuran = route.startsWith('#/pesan-quran');
+    const isWaitlist = route.startsWith('#/pilih-admin');
 
     useEffect(() => {
       const onScroll = () => setIsScrolled(window.scrollY > 24);
@@ -1746,6 +1749,14 @@
             </button>
           </div>
         </div>
+        {isMenuOpen && (
+          <div className="md:hidden border-t bg-white">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3">
+              <a href="#" onClick={(e: React.MouseEvent<HTMLAnchorElement>)=>{e.preventDefault(); window.location.hash = '#'; setIsMenuOpen(false);}} className={`px-3 py-2 rounded-lg ${isLP ? 'bg-emerald-100 text-emerald-800' : 'text-gray-700 hover:bg-emerald-50'}`}>Beranda</a>
+              <a href="#/galeri-wakaf" onClick={(e: React.MouseEvent<HTMLAnchorElement>)=>{e.preventDefault(); window.location.hash = '#/galeri-wakaf'; setIsMenuOpen(false);}} className={`px-3 py-2 rounded-lg ${isGaleri ? 'bg-emerald-100 text-emerald-800' : 'text-gray-700 hover:bg-emerald-50'}`}>Galeri Penyaluran</a>
+            </div>
+          </div>
+        )}
       </header>
     );
 
@@ -1753,19 +1764,33 @@
       <header className={`fixed inset-x-0 top-0 z-50 transition-all ${isScrolled ? 'bg-white/90 backdrop-blur shadow-sm' : 'bg-white'} `}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-16 flex items-center justify-between">
-            <a href="#" onClick={(e)=>{e.preventDefault(); window.location.hash = '#';}} className="flex items-center gap-3" aria-label="Kembali ke Beranda">
-              <img src="/logo.png" alt="Logo Al-Qur'an Kharisma" className="h-12 md:h-14 lg:h-16 w-auto" />
-              <img src="/logo-aba.png" alt="Pondok Digital Quran Aba" className="h-12 md:h-14 lg:h-16 w-auto ml-1" />
-            </a>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={()=>{ if (window.history.length>1) window.history.back(); else window.location.hash = '#/wakaf'; }} aria-label="Kembali" className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800">
+                <ChevronLeft className="w-5 h-5" />
+                <span className="font-semibold hidden sm:inline">Kembali</span>
+              </button>
+              <a href="#" onClick={(e)=>{e.preventDefault(); window.location.hash = '#';}} className="flex items-center gap-3" aria-label="Beranda">
+                <img src="/logo.png" alt="Logo Al-Qur'an Kharisma" className="h-12 md:h-14 lg:h-16 w-auto" />
+                <img src="/logo-aba.png" alt="Pondok Digital Quran Aba" className="h-12 md:h-14 lg:h-16 w-auto ml-1" />
+              </a>
+            </div>
             <nav className="hidden md:flex items-center gap-2">
               <a href="#" onClick={(e)=>{e.preventDefault(); window.location.hash = '#';}} className={`px-3 py-2 rounded-full font-medium ${isLP ? 'bg-emerald-100 text-emerald-800' : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'}`}>Beranda</a>
-              <a href="#/galeri-wakaf" onClick={(e)=>{e.preventDefault(); window.location.hash = '#/galeri-wakaf';}} className={`px-3 py-2 rounded-full font-medium ${isGaleri ? 'bg-emerald-100 text-emerald-800' : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'}`}>Galeri Penyaluran</a>
+              <a href="#/wakaf" onClick={(e)=>{e.preventDefault(); window.location.hash = '#/wakaf';}} className="px-3 py-2 rounded-full font-medium text-gray-700 hover:text-emerald-700 hover:bg-emerald-50">Wakaf</a>
             </nav>
             <button className="md:hidden" aria-label="Toggle menu" onClick={() => setIsMenuOpen((v) => !v)}>
               {isMenuOpen ? <X /> : <Menu />}
             </button>
           </div>
         </div>
+        {isMenuOpen && (
+          <div className="md:hidden border-t bg-white">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3">
+              <a href="#/wakaf" onClick={(e: React.MouseEvent<HTMLAnchorElement>)=>{e.preventDefault(); window.location.hash = '#/wakaf'; setIsMenuOpen(false);}} className="px-3 py-2 rounded-lg text-gray-700 hover:bg-emerald-50">Wakaf</a>
+              <a href="#" onClick={(e: React.MouseEvent<HTMLAnchorElement>)=>{e.preventDefault(); window.location.hash = '#'; setIsMenuOpen(false);}} className="px-3 py-2 rounded-lg text-gray-700 hover:bg-emerald-50">Beranda</a>
+            </div>
+          </div>
+        )}
       </header>
     );
 
@@ -1796,6 +1821,8 @@
             <CartPage cartCount={cartCount} setCartCount={setCartCount} />
           ) : isPesanQuran ? (
             <QuickOrderQuranPage />
+          ) : isWaitlist ? (
+            <WaitlistAdminPage />
           ) : productSlug === 'melawan-kemustahilan' ? (
             <ProductPage
               slug="melawan-kemustahilan"
@@ -2237,77 +2264,66 @@
                   </div>
 
                   {/* Primary action buttons */}
-                  <div className="mt-6 grid sm:grid-cols-3 gap-3">
+                  <div className="mt-6 grid sm:grid-cols-3 gap-3 items-start">
                     <button
                       type="button"
                       onClick={() => {
                         handleAddToCart({ slug: 'quran-kharisma', title: "Al-Qur’an Kharisma", cover: '/cover.jpg', qty: 1 });
                       }}
-                      className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center shadow transition-transform hover:animate-hover-bounce"
+                      className="w-full bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-4 px-5 min-h-[52px] rounded-full flex items-center justify-center gap-3 text-base md:text-lg transition-transform hover:animate-hover-bounce self-start"
                       aria-label="Tambah ke Keranjang"
                     >
-                      <ShoppingCart className="w-5 h-5 mr-2" /> Tambah ke Keranjang
+                      <ShoppingCart className="w-5 h-5" /> Tambah ke Keranjang
                     </button>
                     {promoActive ? (
                       <button
                         type="button"
                         onClick={() => { window.location.hash = '#/pesan-quran'; }}
-                        className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
+                        className="w-full bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-4 px-5 min-h-[52px] rounded-full flex items-center justify-center gap-3 text-base md:text-lg transition-transform hover:animate-hover-bounce self-start"
                         aria-label="Isi Form & Pesan via WhatsApp"
                       >
-                        <Phone className="w-5 h-5 mr-2" /> Isi Form & Pesan via WhatsApp
+                        <Phone className="w-5 h-5" /> Isi Form & Pesan via WhatsApp
                       </button>
                     ) : (
                       <div>
-                        <div className="mb-2 grid grid-cols-2 gap-2">
-                          {ADMIN_CONTACTS.map((adm) => {
-                            const online = isOnlineNow();
-                            const active = selectedWaitAdmin===adm.phone;
-                            return (
-                              <button
-                                key={adm.phone}
-                                type="button"
-                                onClick={() => setSelectedWaitAdmin(adm.phone)}
-                                className={`w-full border rounded-full px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-white text-emerald-700 border-white' : 'bg-white/20 text-white border-white/40 hover:bg-white/30'}`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span>{adm.name.replace('Admin ','')}</span>
-                                  <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-600' : 'text-emerald-100') : 'text-white/70'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
-                                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? (active ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-300 animate-pulse') : 'bg-white/50'}`}></span>
-                                    {online ? 'Online' : 'Offline — balas di jam kerja'}
-                                  </span>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <a
-                          href={`https://wa.me/${selectedWaitAdmin}?text=${encodeURIComponent(waitlistMessage)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 rounded-full flex items-center justify-center transition-transform hover:animate-hover-bounce"
+                        {/* Tombol daftar tunggu menuju halaman pilih admin */}
+                        <button
+                          type="button"
+                          onClick={() => { window.location.hash = '#/pilih-admin'; }}
+                          className="w-full bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-4 px-5 min-h-[52px] rounded-full flex items-center justify-center gap-3 text-base md:text-lg transition-transform hover:animate-hover-bounce"
                           aria-label="Daftar Tunggu Promo"
                         >
-                          <Phone className="w-5 h-5 mr-2" /> Daftar Tunggu Promo Berikutnya
-                        </a>
+                          <Phone className="w-5 h-5" /> Daftar Tunggu Promo Berikutnya
+                        </button>
                       </div>
                     )}
-                    <div className="relative group">
-                      <a
-                        href="#"
-                        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()}
-                        aria-disabled="true"
-                        title="Belum tersedia"
-                        className="bg-emerald-50 text-emerald-900 font-semibold py-3 px-4 rounded-full flex items-center justify-center opacity-60 cursor-not-allowed"
-                        aria-label="Shopee segera hadir"
-                      >
-                        <ShoppingBag className="w-5 h-5 mr-2" /> Segera Hadir
-                      </a>
-                      <div role="tooltip" className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition">
-                        Channel ini segera hadir
-                        <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                    {promoActive ? (
+                      <div className="relative group self-start w-full">
+                        <a
+                          href="#"
+                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()}
+                          aria-disabled="true"
+                          title="Belum tersedia"
+                          className="w-full bg-emerald-50 text-emerald-900 font-semibold py-4 px-5 min-h-[52px] rounded-full flex items-center justify-center gap-3 text-base md:text-lg opacity-60 cursor-not-allowed"
+                          aria-label="Shopee segera hadir"
+                        >
+                          <ShoppingBag className="w-5 h-5" /> Segera Hadir
+                        </a>
+                        <div role="tooltip" className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition">
+                          Channel ini segera hadir
+                          <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => { window.location.hash = '#/pesan-quran'; }}
+                        className="w-full bg-white text-emerald-700 hover:bg-gray-100 font-semibold py-3 px-4 min-h-[48px] rounded-full sm:rounded-xl flex items-center justify-center gap-2 transition-transform hover:animate-hover-bounce self-start"
+                        aria-label="Pesan Sekarang"
+                      >
+                        <Phone className="w-5 h-5" /> Pesan Sekarang
+                      </button>
+                    )}
                   </div>
 
                   {/* Multi-admin selector removed as requested */}
