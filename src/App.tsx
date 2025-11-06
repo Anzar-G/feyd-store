@@ -1234,9 +1234,9 @@
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }, []);
 
-    // Countdown to a target promo date (example: 5 Nov 2025 23:59:59 local time)
+    // Countdown to a target promo date (example: 30 Nov 2025 23:59:59 local time)
     useEffect(() => {
-      const target = new Date('2025-11-05T23:59:59');
+      const target = new Date('2025-11-30T23:59:59');
       const tick = () => {
         const now = new Date();
         const diff = Math.max(0, target.getTime() - now.getTime());
