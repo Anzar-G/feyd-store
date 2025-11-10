@@ -10,6 +10,7 @@
     Star,
     ChevronLeft,
     MessageCircle,
+    Headphones,
     BookOpen,
     Award,
     Shield,
@@ -88,6 +89,13 @@
           </div>
           <a
             href={`https://wa.me/${selectedAdmin}?text=${encodeURIComponent(message)}`}
+            onClick={() => {
+              const fb = (window as any).fbq;
+              if (typeof fb === 'function') {
+                fb('track', 'Lead', { content_category: 'waitlist' });
+                fb('trackCustom', 'WhatsAppClick', { source: 'waitlist' });
+              }
+            }}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 w-full inline-flex items-center justify-center gap-3 py-4 px-5 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
@@ -268,6 +276,14 @@
           value: total,
           currency: 'IDR',
         });
+        // Lead conversion on checkout via cart
+        fb2('track', 'Lead', {
+          content_type: 'product',
+          num_items: items.reduce((s,it)=>s+it.qty,0),
+          value: total,
+          currency: 'IDR',
+        });
+        fb2('trackCustom', 'WhatsAppClick', { source: 'cart_checkout' });
       }
       const url = buildMessage();
       window.open(url, '_blank');
@@ -328,6 +344,14 @@
           value: total,
           currency: 'IDR',
         });
+        // Lead conversion on checkout via cart (admin-specific)
+        fb('track', 'Lead', {
+          content_type: 'product',
+          num_items: items.reduce((s,it)=>s+it.qty,0),
+          value: total,
+          currency: 'IDR',
+        });
+        fb('trackCustom', 'WhatsAppClick', { source: 'cart_checkout_admin' });
       }
       const url = buildMessage().replace('6287879713808', adminPhone);
       window.open(url, '_blank');
@@ -530,7 +554,28 @@
               </div>
               <a
                 href={canSend ? buildMessage() : undefined}
-                onClick={(e)=>{ if(!canSend){ e.preventDefault(); alert('Lengkapi nama, nomor WA valid, dan alamat.'); } }}
+                onClick={(e)=>{
+                  if(!canSend){
+                    e.preventDefault();
+                    alert('Lengkapi nama, nomor WA valid, dan alamat.');
+                  } else {
+                    const fb = (window as any).fbq;
+                    if (typeof fb === 'function') {
+                      fb('track', 'Lead', {
+                        content_name: 'Al-Qur’an Kharisma',
+                        content_category: 'quick_order',
+                        value: total,
+                        currency: 'IDR',
+                      });
+                      fb('track', 'Contact', {
+                        content_category: 'quick_order',
+                        value: total,
+                        currency: 'IDR',
+                      });
+                      fb('trackCustom', 'WhatsAppClick', { source: 'quick_order_form' });
+                    }
+                  }
+                }}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold ${canSend? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
@@ -858,23 +903,7 @@
               {notes && (
                 <div className="mt-2 text-emerald-800 bg-emerald-50 px-4 py-3 rounded-lg text-sm">{notes}</div>
               )}
-              <div className="mt-4">
-                <p className="text-sm text-[#e8f5e9]">Pilih admin untuk pemesanan:</p>
-                <div className="mt-2 grid grid-cols-2 gap-3">
-                  {ADMIN_CONTACTS.map((admin) => (
-                    <a
-                      key={admin.phone}
-                      href={`https://wa.me/${admin.phone}?text=${encodeURIComponent(`Assalamu'alaikum, saya ingin memesan ${title}${PRODUCT_PRICING[title] ? ` (${PRODUCT_PRICING[title].price})` : ''}. Mohon informasi cara pemesanan.`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white hover:bg-gray-100 text-[#4A6741] font-semibold shadow"
-                    >
-                      <Phone className="w-5 h-5" />
-                      <span className="text-sm">{admin.name.replace('Admin ', '')}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
+              {/* Admin selection moved into Quick Order block below */}
             </div>
 
             {/* Author */}
@@ -975,6 +1004,31 @@
                   <input type="tel" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" value={wa} onChange={(e)=>setWa(e.target.value)} placeholder="Nomor WhatsApp" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                   <input value={address} onChange={(e)=>setAddress(e.target.value)} placeholder="Alamat lengkap" className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 outline-none" />
                 </div>
+                <div className="mt-3">
+                  <p className="text-sm text-white/90 mb-2">Pilih admin tujuan:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ADMIN_CONTACTS.map((adm) => {
+                      const online = isOnlineNow();
+                      const active = selectedAdmin === adm.phone;
+                      return (
+                        <button
+                          key={adm.phone}
+                          type="button"
+                          onClick={() => setSelectedAdmin(adm.phone)}
+                          className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{adm.name.replace('Admin ','')}</span>
+                            <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
+                              <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
+                              {online ? 'Online' : 'Offline — balas di jam kerja'}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div className="mt-4">
                   <button
                     type="button"
@@ -989,6 +1043,27 @@
                             source: 'quick-order', slug, title, qty, total, name, whatsapp: wa, address, utm: readUtm(),
                           }),
                         });
+                      } catch {}
+                      // Lead/Contact on quick order
+                      try {
+                        const fb = (window as any).fbq;
+                        const totalVal = priceNum * Math.max(1, qty);
+                        if (typeof fb === 'function') {
+                          fb('track', 'Lead', {
+                            content_ids: [slug],
+                            contents: [{ id: slug, quantity: Math.max(1, qty) }],
+                            content_name: title,
+                            content_type: 'product',
+                            currency: 'IDR',
+                            value: totalVal,
+                          });
+                          fb('track', 'Contact', {
+                            content_type: 'product',
+                            currency: 'IDR',
+                            value: totalVal,
+                          });
+                          fb('trackCustom', 'WhatsAppClick', { source: 'product_quick_order' });
+                        }
                       } catch {}
                       const msgLines = [
                         `Assalamu’alaikum, saya ingin memesan ${title}.`,
@@ -1072,6 +1147,7 @@
     const [showSplash, setShowSplash] = useState(true);
     const [splashExit, setSplashExit] = useState(false);
     const [showStickyCta, setShowStickyCta] = useState(true);
+    const [showCs, setShowCs] = useState(false);
     const [countdown, setCountdown] = useState<{days:number; hours:number; minutes:number; seconds:number}>({days:0,hours:0,minutes:0,seconds:0});
     const [currentPage, setCurrentPage] = useState(0);
     const [route, setRoute] = useState<string>(typeof window !== 'undefined' ? window.location.hash || '#' : '#');
@@ -2462,6 +2538,73 @@
             </div>
           </div>
         )}
+
+        <div className="fixed right-4 bottom-24 md:right-6 md:bottom-24 z-50">
+          {!showCs ? (
+            <button
+              type="button"
+              onClick={() => setShowCs(true)}
+              className="relative rounded-full shadow-2xl bg-emerald-600/0 text-white w-14 h-14 flex items-center justify-center ring-2 ring-white hover:shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition"
+              aria-label="Hubungi CS"
+              title="Butuh bantuan? Chat CS"
+            >
+              <span className="absolute inset-0 grid place-items-center">
+                <Headphones className="w-7 h-7 text-emerald-700" />
+              </span>
+              <img
+                src="/customer-service-logo.webp"
+                alt="Customer Service"
+                className="w-8 h-8 object-contain"
+                onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full ring-2 ring-white" aria-hidden />
+            </button>
+          ) : (
+            <div className="w-[280px] max-w-[80vw] bg-white rounded-2xl shadow-2xl border p-3">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-gray-900">Butuh Bantuan?</div>
+                <button type="button" aria-label="Tutup" onClick={() => setShowCs(false)} className="text-gray-500 hover:text-gray-800">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="mt-2 text-xs text-gray-600">Pilih admin untuk chat via WhatsApp</div>
+              <div className="mt-3 grid grid-cols-1 gap-2">
+                {ADMIN_CONTACTS.map((adm) => {
+                  const msg = (() => {
+                    const utm = readUtm();
+                    const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+                    const lines = [
+                      'Assalamu’alaikum, saya butuh bantuan terkait Al-Qur’an Kharisma.',
+                      'Mohon dibantu ya admin.',
+                      utmStr || undefined,
+                    ].filter(Boolean).join('\n');
+                    return `https://wa.me/${adm.phone}?text=${encodeURIComponent(lines)}`;
+                  })();
+                  return (
+                    <a
+                      key={adm.phone}
+                      href={msg}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        const fb = (window as any).fbq;
+                        if (typeof fb === 'function') {
+                          fb('track', 'Lead', { content_category: 'cs_widget' });
+                          fb('track', 'Contact', { content_category: 'cs_widget' });
+                          fb('trackCustom', 'WhatsAppClick', { source: 'cs_widget' });
+                        }
+                      }}
+                      className="flex items-center justify-between gap-2 border rounded-xl px-3 py-2 hover:bg-emerald-50"
+                    >
+                      <span className="font-semibold text-emerald-700">{adm.name.replace('Admin ','')}</span>
+                      <span className="text-xs text-gray-500">Chat</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
