@@ -2544,7 +2544,7 @@
             <button
               type="button"
               onClick={() => setShowCs(true)}
-              className="relative rounded-full shadow-2xl bg-emerald-600/0 text-white w-14 h-14 flex items-center justify-center ring-2 ring-white hover:shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition"
+              className="relative rounded-full shadow-2xl bg-white text-emerald-700 w-14 h-14 flex items-center justify-center ring-1 ring-emerald-500 ring-offset-1 ring-offset-white hover:shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition"
               aria-label="Hubungi CS"
               title="Butuh bantuan? Chat CS"
             >
