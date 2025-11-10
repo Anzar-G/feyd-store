@@ -56,6 +56,9 @@ const Wakaf: React.FC = () => {
   const [amount, setAmount] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [activeTab, setActiveTab] = useState<'wakaf' | 'permintaan'>('wakaf');
+  useEffect(() => {
+    try { localStorage.setItem('wakaf_active_tab', activeTab); } catch {}
+  }, [activeTab]);
   const [orgName, setOrgName] = useState('');
   const [orgType, setOrgType] = useState('');
   const [orgAddress, setOrgAddress] = useState('');
@@ -248,7 +251,7 @@ const Wakaf: React.FC = () => {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setActiveTab('wakaf')}
+              onClick={() => { setActiveTab('wakaf'); try { localStorage.setItem('wakaf_active_tab','wakaf'); } catch {} }}
               className={[
                 'px-6 py-3 rounded-t-xl font-semibold transition',
                 activeTab === 'wakaf' ? 'bg-[#E8F5E9] border-b-[3px] border-b-[#2E7D32] text-[#0F2A1C]' : 'bg-white hover:bg-[#F1F8E9] text-[#0F2A1C]'
@@ -258,7 +261,7 @@ const Wakaf: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('permintaan')}
+              onClick={() => { setActiveTab('permintaan'); try { localStorage.setItem('wakaf_active_tab','permintaan'); } catch {} }}
               className={[
                 'px-6 py-3 rounded-t-xl font-semibold transition',
                 activeTab === 'permintaan' ? 'bg-[#E8F5E9] border-b-[3px] border-b-[#2E7D32] text-[#0F2A1C]' : 'bg-white hover:bg-[#F1F8E9] text-[#0F2A1C]'

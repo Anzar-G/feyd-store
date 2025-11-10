@@ -50,9 +50,19 @@
     const selected = useMemo(() => ADMIN_CONTACTS.find(a=>a.phone===selectedAdmin), [selectedAdmin]);
     const online = isOnlineNow();
     const message = useMemo(()=>{
-      const label = (selected?.name||'Admin').replace('Admin ','');
-      return `Assalamu’alaikum, saya tertarik promo Al-Qur’an Kharisma. Tolong infokan saat promo buka lagi ya ${label}. InsyaAllah saya langsung order. Terima kasih 😊`;
+      const utm = readUtm();
+      const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+      const lines = [
+        'Assalamu’alaikum 🌱',
+        'Saya ingin masuk daftar tunggu promo.',
+        '➡️ Nama lengkap: ______',
+        '➡️ Produk yang diminati: ______',
+        'Terima kasih. 🙏',
+        utmStr || undefined,
+      ].filter(Boolean).join('\n');
+      return lines;
     }, [selected]);
+
     return (
       <main className="pt-24 pb-16 min-h-screen bg-gray-50">
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1148,10 +1158,73 @@
     const [splashExit, setSplashExit] = useState(false);
     const [showStickyCta, setShowStickyCta] = useState(true);
     const [showCs, setShowCs] = useState(false);
+    const [liveIdx, setLiveIdx] = useState(0);
+    const [liveOpen, setLiveOpen] = useState(true);
     const [countdown, setCountdown] = useState<{days:number; hours:number; minutes:number; seconds:number}>({days:0,hours:0,minutes:0,seconds:0});
     const [currentPage, setCurrentPage] = useState(0);
     const [route, setRoute] = useState<string>(typeof window !== 'undefined' ? window.location.hash || '#' : '#');
     const [cartCount, setCartCount] = useState<number>(typeof window !== 'undefined' ? getCartTotalQty() : 0);
+    const currentProductName = useMemo(() => {
+      if (!route.startsWith('#/produk/')) return null;
+      const slug = route.replace('#/produk/', '');
+      if (slug.includes('melawan-kemustahilan')) return 'Melawan Kemustahilan';
+      if (slug.includes('sebelum-aku-tiada')) return 'Sebelum Aku Tiada';
+      if (slug.includes('titik-balik')) return 'Titik Balik';
+      if (slug.includes('quran-kharisma')) return 'Al-Qur’an Kharisma';
+      return 'Produk';
+    }, [route]);
+
+    const liveData = useMemo(() => ([
+      { name: 'Rani', city: 'Medan', action: 'baru saja memesan', product: 'Al-Qur’an Kharisma', time: '12 menit yang lalu', quote: 'Akhirnya nemu mushaf yang bikin baca tajwid jadi mudah. Buat anak-anak belajar!' },
+      { name: 'Dinda', city: 'Jakarta', action: 'pesanan', product: 'Novel Titik Balik', time: '9 menit lalu', quote: 'Butuh dorongan untuk mulai bisnis. Semoga buku ini jadi titik balikku.' },
+      { name: 'Ustadz Farhan', city: 'Bandung', action: 'memesan', product: 'Al-Qur’an Kharisma (Sampul Hijau)', time: '6 menit yang lalu', quote: 'Untuk murid-murid di pesantren. Biar semangat hafalannya makin kuat.' },
+      { name: 'Nisa', city: 'Yogyakarta', action: 'baru saja beli', product: 'Novel Sebelum Aku Tiada', time: '18 menit yang lalu', quote: 'Buku ini menyentuh hati. Akan saya hadiahkan ke adik yang sedang sakit.' },
+      { name: 'Ahmad', city: 'Surabaya', action: 'pesan', product: 'Al-Qur’an Kharisma + Tasbih Digital', time: '4 menit yang lalu', quote: 'Hadiah pernikahan buat sepupu. InshaAllah berkah.' },
+      { name: 'Ummu Zaki', city: 'Malang', action: 'beli', product: 'Novel Melawan Kemustahilan', time: '11 menit yang lalu', quote: 'Baru ditinggal suami, tapi baca sinopsisnya bikin saya merasa tidak sendiri.' },
+      { name: 'Fajar', city: 'Makassar', action: 'order', product: 'Al-Qur’an Kharisma Mini', time: '7 menit yang lalu', quote: 'Praktis dibawa ke mana-mana. Cocok buat pengajian keliling.' },
+      { name: 'Siti', city: 'Padang', action: 'pesanan', product: 'Novel Titik Balik (edisi limited)', time: '14 menit yang lalu', quote: 'Ingin ubah hidup, tapi butuh langkah pertama. Ini dia.' },
+      { name: 'Iqbal', city: 'Bekasi', action: 'beli', product: 'Novel Melawan Kemustahilan', time: '5 menit yang lalu', quote: 'Pas banget buat temenin sahur. Baca tiap malam, makin yakin Allah selalu ada.' },
+      { name: 'Anisa', city: 'Palembang', action: 'wakaf', product: 'Al-Qur’an Kharisma ke masjid desa', time: '20 menit yang lalu', quote: 'Semoga jadi amal jariyah buat almarhum ayah.' },
+      { name: 'Reihan', city: 'Bogor', action: 'pesan', product: 'Novel Sebelum Aku Tiada', time: '8 menit yang lalu', quote: 'Baca sampai nangis. Ternyata surat terakhir bisa jadi warisan terindah.' },
+      { name: 'Bu Lina', city: 'Semarang', action: 'order 3 pcs', product: 'Al-Qur’an Kharisma', time: '10 menit yang lalu', quote: 'Untuk kelas tajwid ibu-ibu majelis taklim. Terima kasih banyak!' },
+      { name: 'Yusuf', city: 'Denpasar', action: 'beli', product: 'Novel Titik Balik + Quran Kharisma', time: '3 menit yang lalu', quote: 'Tahun baru, hidup baru. InshaAllah mulai dari sini.' },
+      { name: 'Zahra', city: 'Aceh', action: 'wakaf', product: 'Novel Melawan Kemustahilan ke pondok putri', time: '16 menit yang lalu', quote: 'Agar santri-santri tetap kuat saat ujian hidup.' },
+      { name: 'Aldo', city: 'Manado', action: 'pesanan', product: 'Al-Qur’an Kharisma (Sampul Merah)', time: '2 menit yang lalu', quote: 'Warnanya elegan, tajwidnya jelas. Langsung klik sejak lihat di Instagram.' },
+    ]), []);
+
+    const livePool = useMemo(() => {
+      const slug = route.startsWith('#/produk/') ? route.replace('#/produk/', '') : '';
+      const isWakaf = route.startsWith('#/wakaf');
+      const isPesanQuranRoute = route.includes('pesan-quran');
+      const keywords: string[] = [];
+      if (isWakaf) keywords.push('wakaf', 'Al-Qur’an Kharisma');
+      if (currentProductName) keywords.push(currentProductName);
+      if (slug.includes('quran') || isPesanQuranRoute) keywords.push('Al-Qur’an Kharisma');
+      if (slug.includes('melawan-kemustahilan')) keywords.push('Melawan Kemustahilan');
+      if (slug.includes('sebelum-aku-tiada')) keywords.push('Sebelum Aku Tiada');
+      if (slug.includes('titik-balik')) keywords.push('Titik Balik');
+
+      const filtered = liveData.filter(item => keywords.some(k => item.product.toLowerCase().includes(k.toLowerCase())));
+      return filtered.length ? filtered : liveData;
+    }, [route, currentProductName, liveData]);
+
+    useEffect(() => {
+      // show 5s, hide 5s, repeat; skip if no data
+      if (!livePool.length) { setLiveOpen(false); return; }
+      setLiveOpen(true);
+      let hideTimer: number | undefined = window.setTimeout(() => setLiveOpen(false), 5000);
+      const cycle = window.setInterval(() => {
+        setLiveIdx((i) => (i + 1) % livePool.length);
+        setLiveOpen(true);
+        window.setTimeout(() => setLiveOpen(false), 5000);
+      }, 10000);
+      return () => { if (hideTimer) clearTimeout(hideTimer); clearInterval(cycle); };
+    }, [livePool.length]);
+
+    useEffect(() => {
+      // keep index in range when pool changes
+      setLiveIdx((i) => (livePool.length ? i % livePool.length : 0));
+    }, [livePool.length]);
     const handleAddToCart = (payload: { slug: string; title: string; cover: string; qty: number }) => {
       addCartItem(payload);
       setCartCount(getCartTotalQty());
@@ -2539,6 +2612,23 @@
           </div>
         )}
 
+        <div className={`fixed right-3 top-20 md:right-6 md:top-20 z-40 transition-all duration-300 ease-out ${liveOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
+          <div className="max-w-[92vw] w-[240px] md:w-[320px] bg-white border border-[#e0e0e0] rounded-2xl shadow-[0_12px_30px_rgba(0,0,0,0.12)] p-2.5 md:p-3">
+            <div className="flex items-start gap-2">
+              <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-[#E8F5E9] text-[#27ae60] grid place-items-center text-sm md:text-base">🛒</div>
+              <div className="min-w-0">
+                <div className="text-xs md:text-sm font-semibold text-black truncate">{livePool[liveIdx]?.name} dari {livePool[liveIdx]?.city}</div>
+                <div className="text-xs md:text-sm text-black"><span className="font-medium">{livePool[liveIdx]?.action}</span> <span className="font-semibold">{livePool[liveIdx]?.product}</span></div>
+                <div className="text-[10px] md:text-xs text-[#555] mt-0.5">⏱️ {livePool[liveIdx]?.time}</div>
+                <div className="text-[10px] md:text-xs text-[#777] italic mt-1 truncate">“{livePool[liveIdx]?.quote}”</div>
+              </div>
+              <button type="button" onClick={()=>setLiveOpen(false)} className="ml-auto text-gray-500 hover:text-gray-800" aria-label="Tutup">
+                <X className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="fixed right-4 bottom-24 md:right-6 md:bottom-24 z-50">
           {!showCs ? (
             <button
@@ -2571,11 +2661,30 @@
               <div className="mt-3 grid grid-cols-1 gap-2">
                 {ADMIN_CONTACTS.map((adm) => {
                   const msg = (() => {
+                    const adminLabel = adm.name.replace('Admin ','');
                     const utm = readUtm();
                     const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+                    const wakafTab = (() => { try { return localStorage.getItem('wakaf_active_tab') || ''; } catch { return ''; } })();
+                    const isWakafPermintaan = route.startsWith('#/wakaf') && wakafTab === 'permintaan';
+                    const isWakafPenyaluran = route.startsWith('#/wakaf') && wakafTab !== 'permintaan';
+                    const productContext = (() => {
+                      if (route.startsWith('#/produk/')) return currentProductName || 'Produk';
+                      if (isPesanQuran) return 'Al-Qur’an Kharisma';
+                      return undefined;
+                    })();
+                    const wakafContext = isWakafPermintaan ? 'permintaan wakaf Al-Qur’an' : (isWakafPenyaluran ? 'penyaluran wakaf Al-Qur’an' : undefined);
+                    const productLine = productContext ? `produk ${productContext}` : undefined;
+                    const topicLine = wakafContext ? wakafContext : productLine || 'produk';
                     const lines = [
-                      'Assalamu’alaikum, saya butuh bantuan terkait Al-Qur’an Kharisma.',
-                      'Mohon dibantu ya admin.',
+                      'Assalamu’alaikum,',
+                      'Terima kasih telah menghubungi Islamic Product Market.',
+                      'Untuk bisa membantu kamu dengan lebih baik, mohon informasikan:',
+                      '• Nama lengkapmu?',
+                      `• Pertanyaan atau kebutuhanmu seputar ${topicLine}?`,
+                      'Kami akan segera membalas dalam 24 jam — dan akan menyebut namamu saat menjawab.',
+                      'Jangan lupa, cek koleksi produk dan penawaran spesial di link bio.',
+                      'Semoga Allah memudahkan segala urusanmu.',
+                      '— Tim IPM',
                       utmStr || undefined,
                     ].filter(Boolean).join('\n');
                     return `https://wa.me/${adm.phone}?text=${encodeURIComponent(lines)}`;
@@ -2593,6 +2702,7 @@
                           fb('track', 'Contact', { content_category: 'cs_widget' });
                           fb('trackCustom', 'WhatsAppClick', { source: 'cs_widget' });
                         }
+                        setShowCs(false);
                       }}
                       className="flex items-center justify-between gap-2 border rounded-xl px-3 py-2 hover:bg-emerald-50"
                     >
