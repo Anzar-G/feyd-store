@@ -777,6 +777,99 @@
     ],
   };
 
+  const QuranPricingSection: React.FC = () => {
+    return (
+      <section className="mt-12">
+        <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6 md:p-7">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] md:text-xs font-semibold uppercase tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Kenapa harga Rp 297.000 itu wajar?
+            </div>
+            <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-gray-900">
+              Bukan Sekadar Mushaf, tapi Sistem Belajar Lengkap
+            </h2>
+            <div className="mt-4 text-sm md:text-base text-gray-700 leading-relaxed space-y-3">
+              <p>
+                Dengan harga Rp 297.000, Anda tidak hanya mendapatkan Al-Qur’an Kharisma secara fisik, tetapi juga akses ke
+                komunitas, bimbingan, dan materi pendukung yang membantu Anda <span className="font-semibold">istiqamah membaca Al-Qur’an dengan benar</span>.
+              </p>
+              <p>
+                Jika dibandingkan dengan sekali makan di luar atau biaya hiburan seharian, investasi ini jauh lebih kecil —
+                namun manfaatnya, insyaAllah, bisa Anda rasakan <span className="font-semibold">setiap hari dan menjadi amal jariyah</span>.
+              </p>
+              <p className="text-xs text-gray-500 border-t pt-3 mt-2">
+                *Detail harga dan tombol pemesanan sudah tersedia di CTA utama di atas. Bagian ini membantu Anda melihat
+                bahwa harga tersebut sebanding dengan seluruh manfaat yang Anda terima.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-5">
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-emerald-800 tracking-wide uppercase flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                Apa saja yang Anda dapatkan?
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm text-gray-800">
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-emerald-600" />
+                  <div>
+                    <span className="font-semibold">WA Grup Indonesia Bisa Mengaji</span>
+                    <span className="block text-xs text-gray-600">Komunitas belajar aktif, saling mengingatkan dalam kebaikan.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-emerald-600" />
+                  <div>
+                    <span className="font-semibold">Bimbingan Mengaji 1 Bulan</span>
+                    <span className="block text-xs text-gray-600">Pendampingan, bukan sekadar beli mushaf lalu dibiarkan.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-emerald-600" />
+                  <div>
+                    <span className="font-semibold">Buku Saku Dzikir</span>
+                    <span className="block text-xs text-gray-600">Teman dzikir harian yang ringkas dan mudah dibawa.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-emerald-600" />
+                  <div>
+                    <span className="font-semibold">E-book Premium</span>
+                    <span className="block text-xs text-gray-600">Materi tambahan eksklusif untuk memperbaiki bacaan dan pemahaman.</span>
+                  </div>
+                </li>
+              </ul>
+              <p className="mt-4 text-sm italic text-emerald-900">
+                “Ini bukan sekadar Al-Qur’an — ini paket lengkap transformasi membaca Anda.”
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                Testimoni di sekitar harga
+              </div>
+              <div className="mt-3 space-y-3 text-sm text-gray-700">
+                <p className="italic">
+                  “Awalnya saya kira mahal. Tapi ternyata dapat grup WA, bimbingan, buku saku, dan e-book. Rp 297.000 terasa murah banget kalau lihat bonusnya.”
+                  <span className="block mt-1 text-xs text-gray-500">— Muhammad Faqih, Santri</span>
+                </p>
+                <p className="italic">
+                  “Berasa beli paket belajar, bukan cuma beli mushaf. Worth it banget.”
+                  <span className="block mt-1 text-xs text-gray-500">— Nizar, Karyawan</span>
+                </p>
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                <Clock className="w-4 h-4 text-emerald-600" />
+                Promo terbatas, waktu terbaik untuk mulai memperbaiki bacaan adalah hari ini.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
   const ProductPage: React.FC<ProductProps> = ({ slug, title, author, tagline, cover, synopsis, notes, testimonial, cartCount = 0, onAddToCart }) => {
     const [name, setName] = useState('');
     const [wa, setWa] = useState('');
@@ -1781,7 +1874,7 @@
 
     
 
-    const pageSize = 3;
+    const pageSize = 4;
     const totalPages = Math.ceil(testimonials.length / pageSize) || 1;
     const visibleTestimonials = useMemo(() => {
       const start = currentPage * pageSize;
@@ -2212,15 +2305,15 @@
                 <h2 className="section-title">Fitur Unggulan</h2>
                 <p className="section-subtitle">Dirancang untuk pengalaman membaca yang nyaman, akurat, dan bermakna.</p>
               </Reveal>
-              <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {features.map((f, i) => (
                   <Reveal key={i} delay={i * 60}>
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 hover:shadow-lg transition hover:-translate-y-1">
-                      <div className="bg-emerald-50 w-14 h-14 rounded-full flex items-center justify-center mb-4" aria-hidden>
+                    <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 hover:shadow-lg transition hover:-translate-y-1">
+                      <div className="bg-emerald-50 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center mb-3 md:mb-4" aria-hidden>
                         {f.icon}
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{f.title}</h3>
-                      <p className="text-gray-600">{f.description}</p>
+                      <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-1">{f.title}</h3>
+                      <p className="text-xs md:text-sm text-gray-600">{f.description}</p>
                     </div>
                   </Reveal>
                 ))}
@@ -2236,11 +2329,11 @@
                 <p className="section-subtitle">Testimoni realistis dari berbagai kalangan pembaca.</p>
               </Reveal>
               <div className="relative">
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
                   {visibleTestimonials.map((t, idx) => (
                     <Reveal key={t.id} delay={idx * 80}>
-                      <div className={`bg-white p-6 rounded-xl shadow-sm border border-gray-100`}>
-                        <div className="flex items-center mb-4">
+                      <div className={`bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100`}>
+                        <div className="flex items-center mb-3 md:mb-4">
                           {t.avatarUrl ? (
                             <img
                               src={t.avatarUrl}
@@ -2256,12 +2349,12 @@
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">{t.name}</p>
-                            <p className="text-sm text-gray-500">{t.role}</p>
+                            <p className="font-semibold text-gray-900 text-sm md:text-base">{t.name}</p>
+                            <p className="text-xs md:text-sm text-gray-500">{t.role}</p>
                           </div>
                         </div>
                         <RatingStars value={t.rating} />
-                        <p className="mt-3 text-gray-700">“{t.content}”</p>
+                        <p className="mt-2 md:mt-3 text-xs md:text-sm text-gray-700">“{t.content}”</p>
                       </div>
                     </Reveal>
                   ))}
@@ -2391,14 +2484,25 @@
                           </span>
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold mb-2">Bonus:</p>
-                          <ul className="text-sm space-y-1">
-                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> WA grup Indonesia Bisa Mengaji</li>
-                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> Bimbingan mengaji 1 bulan</li>
-                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> Buku saku dzikir</li>
-                            <li className="flex items-start"><Check className="w-4 h-4 text-emerald-200 mr-2 mt-0.5" /> E-book premium</li>
-                          </ul>
-                          <p className="text-xs text-emerald-100 mt-2">Promo terbatas hingga akhir bulan</p>
+                          <p className="font-semibold mb-2">Bonus Paket Belajar Mengaji</p>
+                          <p className="text-sm">
+                            WA Grup, bimbingan 1 bulan, dan materi pendukung mengaji.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const el = document.getElementById('bonus-detail');
+                              if (!el) return;
+                              const rect = el.getBoundingClientRect();
+                              const offset = 120; // jarak dari atas viewport agar judul tidak terlalu turun
+                              const targetY = window.scrollY + rect.top - offset;
+                              window.scrollTo({ top: Math.max(targetY, 0), behavior: 'smooth' });
+                            }}
+                            className="text-sm md:text-base text-emerald-50 mt-2 font-semibold inline-flex items-center gap-1.5 underline decoration-emerald-50/60 decoration-2 underline-offset-4"
+                          >
+                            <ChevronRight className="w-3 h-3 rotate-90" />
+                            <span>Detail bonus lengkap ada di bagian bawah halaman.</span>
+                          </button>
                         </div>
                       </>
                     ) : (
@@ -2487,6 +2591,9 @@
                   </div>
                 </div>
               </Reveal>
+              <div id="bonus-detail" className="mt-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <QuranPricingSection />
+              </div>
             </div>
           </section>
           
