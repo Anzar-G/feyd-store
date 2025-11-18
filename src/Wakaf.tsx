@@ -69,7 +69,7 @@ const Wakaf: React.FC = () => {
   const [reason, setReason] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const ADMIN_CONTACTS = [
-    { name: 'Admin Ustd Abdillah', phone: '6287879713808' },
+    { name: 'Admin Pondok', phone: '6287879713808' },
     { name: 'Admin Mas Nizar', phone: '6282221025449' },
   ];
   const [selectedAdmin, setSelectedAdmin] = useState<string>(ADMIN_CONTACTS[0].phone);
@@ -585,7 +585,7 @@ const Wakaf: React.FC = () => {
                       className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
                     >
                       <div className="flex items-center justify-between">
-                        <span>{adm.name.replace('Admin ','')}</span>
+                        <span>{adm.name}</span>
                         <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
                           <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
                           {online ? 'Online' : 'Offline — balas di jam kerja'}
@@ -718,7 +718,7 @@ const Wakaf: React.FC = () => {
                           className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
                         >
                           <div className="flex items-center justify-between">
-                            <span>{adm.name.replace('Admin ','')}</span>
+                            <span>{adm.name}</span>
                             <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
                               <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
                               {online ? 'Online' : 'Offline — balas di jam kerja'}

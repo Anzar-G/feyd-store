@@ -85,7 +85,7 @@
                   <span className="flex items-center gap-3">
                     <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 font-bold">{adm.avatar}</span>
                     <span className="text-left">
-                      <span className="block font-semibold">{adm.name.replace('Admin ','')}</span>
+                      <span className="block font-semibold">{adm.name}</span>
                       <span className="block text-xs text-gray-600">{adm.role}</span>
                     </span>
                   </span>
@@ -110,7 +110,7 @@
             rel="noopener noreferrer"
             className="mt-4 w-full inline-flex items-center justify-center gap-3 py-4 px-5 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
           >
-            Kirim ke { (selected?.name||'Admin').replace('Admin ','') } via WhatsApp
+            Kirim ke { (selected?.name||'Admin') } via WhatsApp
             <Phone className="w-5 h-5" />
           </a>
         </section>
@@ -208,12 +208,19 @@
     const buildMessage = () => {
       const utm = readUtm();
       const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+      const bonuses = items
+        .map(it => PRODUCT_PRICING[it.title]?.bonus)
+        .filter(Boolean) as string[];
+      const uniqueBonuses = Array.from(new Set(bonuses));
       const lines = [
         'Assalamu’alaikum, saya ingin memesan:',
         '',
         ...items.map(it => `- ${it.title}: ${it.qty} pcs`),
         '',
         `Estimasi total: ${formatRupiah(total)} (belum termasuk ongkir)`,
+        uniqueBonuses.length ? '' : undefined,
+        uniqueBonuses.length ? 'Bonus yang didapat:' : undefined,
+        ...uniqueBonuses.map(b => `- ${b}`),
         '',
         `Nama: ${name}`,
         `WhatsApp: ${normalizeWa(wa)}`,
@@ -444,7 +451,7 @@
                           className={`inline-flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl font-semibold transition ${base}`}
                         >
                           <Phone className="w-5 h-5" />
-                          <span className="text-xs">{admin.name.replace('Admin ', '')}</span>
+                          <span className="text-xs">{admin.name}</span>
                           <span className={`text-[10px] font-normal flex items-center gap-1 ${canCheckout ? (online ? 'text-emerald-100' : 'text-white/70') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
                             <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-white/50'}`}></span>
                             {online ? 'Online' : 'Offline — balas di jam kerja'}
@@ -474,16 +481,23 @@
     const normalizeWa = (s:string) => { const d=s.replace(/\D/g,''); if(d.startsWith('62')) return d; if(d.startsWith('0')) return '62'+d.slice(1); return '62'+d; };
     const formatRupiah = (n:number) => `Rp ${n.toLocaleString('id-ID')}`;
     const price = 297000;
+    const bonusDesc = PRODUCT_PRICING['Al-Qur’an Kharisma']?.bonus;
     const total = price * Math.max(1, qty);
     const canSend = name.trim().length>1 && /\d{10,}/.test(wa.replace(/\D/g,'')) && address.trim().length>5;
     const buildMessage = () => {
       const utm = readUtm();
       const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
+      const bonusLines = Array.isArray(bonusDesc)
+        ? bonusDesc.map(b=>`- ${b}`)
+        : (bonusDesc ? [`- ${bonusDesc}`] : []);
       const lines = [
         'Assalamu’alaikum, saya ingin memesan Al-Qur’an Kharisma, apakah masih tersedia?:',
         `Jumlah: ${Math.max(1, qty)} pcs`,
         `Harga satuan: ${formatRupiah(price)}`,
         `Estimasi total: ${formatRupiah(total)} (belum termasuk ongkir)`,
+        bonusLines.length ? '' : undefined,
+        bonusLines.length ? 'Bonus yang didapat:' : undefined,
+        ...bonusLines,
         '',
         `Nama: ${name}`,
         `WhatsApp: ${normalizeWa(wa)}`,
@@ -551,7 +565,7 @@
                         className={`w-full border rounded-xl px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
                       >
                         <div className="flex items-center justify-between">
-                          <span>{admin.name.replace('Admin ','')}</span>
+                          <span>{admin.name}</span>
                           <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
                             <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
                             {online ? 'Online' : 'Offline — balas di jam kerja'}
@@ -601,17 +615,27 @@
   };
 
   // Harga novel dan bonus
-  const PRODUCT_PRICING: Record<string, { price: string; bonus?: string }> = {
+  const PRODUCT_PRICING: Record<string, { price: string; bonus?: string | string[] }> = {
     'Sebelum Aku Tiada': { price: 'Rp 157.000' },
     'Melawan Kemustahilan': { price: 'Rp 249.000', bonus: 'Bonus Video Motivasi Spesial Dewa Eka Prayoga senilai Rp 300.000' },
     'Titik Balik': { price: 'Rp 147.000' },
-    'Al-Qur’an Kharisma': { price: 'Rp 297.000' },
+    'Al-Qur’an Kharisma': { price: 'Rp 297.000', bonus: [
+      'WA Grup Indonesia Bisa Mengaji',
+      'Bimbingan Mengaji 1 Bulan',
+      'Buku Saku Dzikir',
+      'E-book Premium',
+    ] },
   };
 
   const buildProductWaLink = (title: string) => {
     const info = PRODUCT_PRICING[title];
-    const text = `Assalamu’alaikum, saya ingin memesan ${title}${info ? ` (${info.price})` : ''}. Mohon informasi cara pemesanan.`;
-    return `https://wa.me/6287879713808?text=${encodeURIComponent(text)}`;
+    const base = `Assalamu’alaikum, saya ingin memesan ${title}${info ? ` (${info.price})` : ''}. Mohon informasi cara pemesanan.`;
+    let withBonus = base;
+    if (info?.bonus) {
+      const bonusLines = Array.isArray(info.bonus) ? info.bonus.map(b=>`- ${b}`).join('\n') : `- ${info.bonus}`;
+      withBonus = `${base}\n\nBonus yang didapat:\n${bonusLines}`;
+    }
+    return `https://wa.me/6287879713808?text=${encodeURIComponent(withBonus)}`;
   };
 
   type Feature = {
@@ -691,7 +715,7 @@
   // ============================================
   const ADMIN_CONTACTS = [
     {
-      name: 'Admin Ustd Abdillah',
+      name: 'Admin Pondok',
       phone: '6287879713808',
       avatar: 'MN',
       role: 'Pemesanan & Konsultasi',
@@ -1121,7 +1145,7 @@
                           className={`w-full border rounded-lg px-3 py-2 text-sm font-semibold transition text-left ${active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
                         >
                           <div className="flex items-center justify-between">
-                            <span>{adm.name.replace('Admin ','')}</span>
+                            <span>{adm.name}</span>
                             <span className={`text-[10px] font-normal inline-flex items-center gap-1 ${online ? (active ? 'text-emerald-100' : 'text-emerald-600') : 'text-gray-500'}`} title={online ? undefined : 'Admin akan merespons esok pagi mulai 06:00 WIB'}>
                               <span className={`inline-block w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-gray-400'}`}></span>
                               {online ? 'Online' : 'Offline — balas di jam kerja'}
@@ -1283,6 +1307,27 @@
       { name: 'Yusuf', city: 'Denpasar', action: 'beli', product: 'Novel Titik Balik + Quran Kharisma', time: '3 menit yang lalu', quote: 'Tahun baru, hidup baru. InshaAllah mulai dari sini.' },
       { name: 'Zahra', city: 'Aceh', action: 'wakaf', product: 'Novel Melawan Kemustahilan ke pondok putri', time: '16 menit yang lalu', quote: 'Agar santri-santri tetap kuat saat ujian hidup.' },
       { name: 'Aldo', city: 'Manado', action: 'pesanan', product: 'Al-Qur’an Kharisma (Sampul Merah)', time: '2 menit yang lalu', quote: 'Warnanya elegan, tajwidnya jelas. Langsung klik sejak lihat di Instagram.' },
+      // tambahan data live untuk memperkaya feed
+      { name: 'Dinda Maharani Putri', city: 'Jakarta', action: 'pesanan', product: 'Novel Titik Balik', time: '27 menit lalu', quote: 'Butuh dorongan buat mulai langkah baru. Semoga cocok.' },
+      { name: 'Rizky Ramadhan', city: 'Bandung', action: 'membeli', product: 'Qur’an Eksklusif', time: '53 menit lalu', quote: 'Lagi nyari mushaf yang enak buat tilawah malam.' },
+      { name: 'Siti Aminah Wardani', city: 'Makassar', action: 'checkout', product: 'Novel Melawan Kemustahilan', time: '1 jam 14 menit lalu', quote: 'Katanya bagus buat ningkatin mental dan semangat.' },
+      { name: 'Fahri Alfarizi', city: 'Surabaya', action: 'pesanan', product: 'Novel Ketika Aku Tiada', time: '42 menit lalu', quote: 'Temanya mendalam, pas buat nemenin akhir pekan.' },
+      { name: 'Nadya Khairunnisa', city: 'Depok', action: 'membeli', product: 'Qur’an Eksklusif', time: '2 jam 3 menit lalu', quote: 'Buat hadiah untuk ibu. Semoga beliau suka.' },
+      { name: 'Arif Fathurahman', city: 'Medan', action: 'checkout', product: 'Novel Titik Balik', time: '1 jam 8 menit lalu', quote: 'Lagi bingung arah hidup. Kayaknya buku ini relate.' },
+      { name: 'Hanna Nur Aulia', city: 'Yogyakarta', action: 'pesanan', product: 'Novel Melawan Kemustahilan', time: '36 menit lalu', quote: 'Butuh bacaan yang bisa ngangkat semangat.' },
+      { name: 'Ilham Prasetyo', city: 'Padang', action: 'membeli', product: 'Novel Ketika Aku Tiada', time: '2 jam 21 menit lalu', quote: 'Banyak yang bilang ceritanya nyentuh banget.' },
+      { name: 'Lina Maharani', city: 'Bali', action: 'pesanan', product: 'Qur’an Eksklusif', time: '1 jam 55 menit lalu', quote: 'Pengen mulai murajaah lebih terjadwal.' },
+      { name: 'Bayu Aditya', city: 'Balikpapan', action: 'checkout', product: 'Novel Titik Balik', time: '1 jam 31 menit lalu', quote: 'Cari buku motivasi yang ringan tapi ngena.' },
+      { name: 'Fauzan Hidayat', city: 'Pontianak', action: 'membeli', product: 'Novel Melawan Kemustahilan', time: '2 jam 47 menit lalu', quote: 'Butuh semangat baru buat ngejar target tahun depan.' },
+      { name: 'Mega Puspitasari', city: 'Tangerang', action: 'pesanan', product: 'Qur’an Eksklusif', time: '48 menit lalu', quote: 'Biar rumah makin adem dengan mushaf baru.' },
+      { name: 'Rara Mutiara Salsabila', city: 'Bekasi', action: 'checkout', product: 'Novel Ketika Aku Tiada', time: '1 jam 18 menit lalu', quote: 'Pengen baca cerita yang emosional.' },
+      { name: 'Deni Firmansyah', city: 'Banjarmasin', action: 'pesanan', product: 'Novel Titik Balik', time: '2 jam 12 menit lalu', quote: 'Banyak yang bilang ini buku yang “ngehantam halus”.' },
+      { name: 'Yuni Anggraini', city: 'Semarang', action: 'membeli', product: 'Qur’an Eksklusif', time: '59 menit lalu', quote: 'Buat persiapan Ramadan tahun depan.' },
+      { name: 'Alam Setiawan', city: 'Lampung', action: 'checkout', product: 'Novel Melawan Kemustahilan', time: '1 jam 43 menit lalu', quote: 'Lagi butuh motivasi biar nggak ngeremehin diri sendiri.' },
+      { name: 'Rifda Rahmawati', city: 'Malang', action: 'pesanan', product: 'Novel Ketika Aku Tiada', time: '24 menit lalu', quote: 'Buat bacaan sebelum tidur. Katanya dalem banget.' },
+      { name: 'Dewi Kartikasari', city: 'Solo', action: 'membeli', product: 'Qur’an Eksklusif', time: '3 jam 11 menit lalu', quote: 'Pengen punya mushaf baru buat mulai target khatam.' },
+      { name: 'Fikar Adnan Putra', city: 'Batam', action: 'checkout', product: 'Novel Titik Balik', time: '2 jam 26 menit lalu', quote: 'Lagi coba bangkit dari masa sulit. Semoga bukunya membantu.' },
+      { name: 'Alya Nurjanah', city: 'Cirebon', action: 'pesanan', product: 'Novel Melawan Kemustahilan', time: '1 jam 02 menit lalu', quote: 'Buat ngingetin diri biar jangan cepat nyerah.' },
     ]), []);
 
     const livePool = useMemo(() => {
@@ -1302,16 +1347,25 @@
     }, [route, currentProductName, liveData]);
 
     useEffect(() => {
-      // show 5s, hide 5s, repeat; skip if no data
+      // initial delay 3s on first show, then show 5s / hide 5s loop; skip if no data
       if (!livePool.length) { setLiveOpen(false); return; }
-      setLiveOpen(true);
-      let hideTimer: number | undefined = window.setTimeout(() => setLiveOpen(false), 5000);
+      setLiveOpen(false);
+      let initialTimer: number | undefined;
+      let initialHide: number | undefined;
       const cycle = window.setInterval(() => {
         setLiveIdx((i) => (i + 1) % livePool.length);
         setLiveOpen(true);
         window.setTimeout(() => setLiveOpen(false), 5000);
       }, 10000);
-      return () => { if (hideTimer) clearTimeout(hideTimer); clearInterval(cycle); };
+      initialTimer = window.setTimeout(() => {
+        setLiveOpen(true);
+        initialHide = window.setTimeout(() => setLiveOpen(false), 5000);
+      }, 3000);
+      return () => {
+        if (initialTimer) clearTimeout(initialTimer);
+        if (initialHide) clearTimeout(initialHide);
+        clearInterval(cycle);
+      };
     }, [livePool.length]);
 
     useEffect(() => {
@@ -1497,7 +1551,7 @@
     const [selectedWaitAdmin, setSelectedWaitAdmin] = useState<string>(ADMIN_CONTACTS[0].phone);
     const selectedWaitAdminObj = useMemo(() => ADMIN_CONTACTS.find(a => a.phone === selectedWaitAdmin), [selectedWaitAdmin]);
     const waitlistMessage = useMemo(() => {
-      const label = (selectedWaitAdminObj?.name || 'Admin').replace('Admin ', '');
+      const label = (selectedWaitAdminObj?.name || 'Admin');
       return `Assalamu’alaikum, saya tertarik promo Al-Qur’an Kharisma. Tolong infokan saat promo buka lagi ya ${label}. InsyaAllah saya langsung order. Terima kasih 😊`;
     }, [selectedWaitAdminObj]);
 
@@ -2347,6 +2401,7 @@
                                 <span className="text-emerald-700 font-semibold">{t.avatar}</span>
                               )}
                             </div>
+                            
                           )}
                           <div>
                             <p className="font-semibold text-gray-900 text-sm md:text-base">{t.name}</p>
@@ -2768,7 +2823,7 @@
               <div className="mt-3 grid grid-cols-1 gap-2">
                 {ADMIN_CONTACTS.map((adm) => {
                   const msg = (() => {
-                    const adminLabel = adm.name.replace('Admin ','');
+                    const adminLabel = adm.name;
                     const utm = readUtm();
                     const utmStr = Object.keys(utm).length ? `\nUTM: ${Object.entries(utm).filter(([k])=>k.startsWith('utm_')).map(([k,v])=>`${k}=${v}`).join('&')}` : '';
                     const wakafTab = (() => { try { return localStorage.getItem('wakaf_active_tab') || ''; } catch { return ''; } })();
@@ -2813,7 +2868,7 @@
                       }}
                       className="flex items-center justify-between gap-2 border rounded-xl px-3 py-2 hover:bg-emerald-50"
                     >
-                      <span className="font-semibold text-emerald-700">{adm.name.replace('Admin ','')}</span>
+                      <span className="font-semibold text-emerald-700">{adm.name}</span>
                       <span className="text-xs text-gray-500">Chat</span>
                     </a>
                   );
