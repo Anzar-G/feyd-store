@@ -1009,7 +1009,7 @@
                   <ResponsiveImage
                     src={cover}
                     alt={`Sampul ${title}`}
-                    className="w-[20rem] md:w-[24rem] h-auto object-cover transform group-hover:scale-[1.01] transition"
+                    className="w-64 sm:w-72 md:w-[24rem] h-auto object-cover transform group-hover:scale-[1.01] transition"
                     loading="lazy"
                     onLoad={() => setCoverLoaded(true)}
                   />
@@ -1018,12 +1018,47 @@
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">{title}</h1>
+                <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700">
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <span className="font-semibold">4.9/5.0</span>
+                  </div>
+                  <span className="text-xs text-emerald-800/80">• 2.500+ ulasan pembaca</span>
+                </div>
                 <p className="mt-2 text-[#4A6741] font-semibold italic">{tagline}</p>
                 <p className="mt-4 text-gray-700">Ditulis oleh <span className="font-semibold">{author}</span>, penulis best seller yang karyanya telah menginspirasi ribuan pembaca.</p>
               </div>
             </div>
 
-            <div className="mt-10 space-y-4">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('cta-pembelian');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-base font-semibold bg-emerald-600 text-white shadow hover:bg-emerald-700 active:scale-[0.99] transition-transform w-full sm:w-auto"
+              >
+                Pesan Sekarang
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('detail-buku');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-base font-semibold border border-emerald-600 text-emerald-700 bg-white hover:bg-emerald-50 active:scale-[0.99] transition-transform w-full sm:w-auto"
+              >
+                Lihat Detail Fitur
+              </button>
+            </div>
+
+            <div id="detail-buku" className="mt-10 space-y-4">
               {synopsis.map((p, i) => (
                 <p key={i} className="text-gray-700 leading-relaxed">{p}</p>
               ))}
@@ -1098,7 +1133,7 @@
             )}
 
             {/* CTA Pembelian via WhatsApp + Keranjang */}
-            <div className="mt-12 rounded-2xl p-6 md:p-8 bg-[#4A6741] text-white">
+            <div id="cta-pembelian" className="mt-12 rounded-2xl p-6 md:p-8 bg-[#4A6741] text-white">
               <h2 className="text-2xl font-bold">Pesan Sekarang via WhatsApp</h2>
               <div className="mt-2 flex items-baseline gap-3">
                 <span className="text-lg opacity-90">Harga</span>
@@ -1109,14 +1144,14 @@
               )}
               <div className="mt-4 flex flex-col md:flex-row gap-3 md:items-center">
                 <div className="flex items-center gap-2 bg-white/10 rounded-lg px-2 py-1 w-max">
-                  <button type="button" aria-label="Kurangi" onClick={()=>setQty(q=>Math.max(1,q-1))} className="px-2 py-1 rounded bg-white/20">-</button>
+                  <button type="button" aria-label="Kurangi" onClick={()=>setQty(q=>Math.max(1,q-1))} className="px-3 py-2 rounded bg-white/20">-</button>
                   <input value={qty} onChange={(e)=>setQty(Math.max(1, Math.min(999, Number(e.target.value)||1)))} type="number" min={1} max={999} className="w-16 text-center bg-transparent outline-none" />
-                  <button type="button" aria-label="Tambah" onClick={()=>setQty(q=>Math.min(999,q+1))} className="px-2 py-1 rounded bg-white/20">+</button>
+                  <button type="button" aria-label="Tambah" onClick={()=>setQty(q=>Math.min(999,q+1))} className="px-3 py-2 rounded bg-white/20">+</button>
                 </div>
                 <button
                   type="button"
                   onClick={() => { onAddToCart?.({ slug, title, cover, qty }); }}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/90 hover:bg-white text-[#4A6741] font-semibold shadow"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-md active:scale-[0.99] transition-transform"
                 >
                   Tambah ke Keranjang
                   <ShoppingCart className="w-5 h-5" />
@@ -1347,20 +1382,33 @@
     }, [route, currentProductName, liveData]);
 
     useEffect(() => {
-      // initial delay 3s on first show, then show 5s / hide 5s loop; skip if no data
+      // initial delay, then show 5s / hide, with lower frequency and capped appearances; skip if no data
       if (!livePool.length) { setLiveOpen(false); return; }
       setLiveOpen(false);
       let initialTimer: number | undefined;
       let initialHide: number | undefined;
-      const cycle = window.setInterval(() => {
-        setLiveIdx((i) => (i + 1) % livePool.length);
+      let shown = 0;
+      const maxShows = 4;
+
+      const showOnce = (advanceIndex: boolean) => {
+        if (!livePool.length || shown >= maxShows) return;
+        shown += 1;
+        if (advanceIndex) {
+          setLiveIdx((i) => (i + 1) % livePool.length);
+        }
         setLiveOpen(true);
         window.setTimeout(() => setLiveOpen(false), 5000);
-      }, 10000);
+      };
+
+      const cycle = window.setInterval(() => {
+        showOnce(true);
+      }, 20000);
+
       initialTimer = window.setTimeout(() => {
-        setLiveOpen(true);
+        showOnce(false);
         initialHide = window.setTimeout(() => setLiveOpen(false), 5000);
-      }, 3000);
+      }, 5000);
+
       return () => {
         if (initialTimer) clearTimeout(initialTimer);
         if (initialHide) clearTimeout(initialHide);
@@ -2383,10 +2431,11 @@
                 <p className="section-subtitle">Testimoni realistis dari berbagai kalangan pembaca.</p>
               </Reveal>
               <div className="relative">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
+                {/* Desktop & tablet: grid layout */}
+                <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
                   {visibleTestimonials.map((t, idx) => (
                     <Reveal key={t.id} delay={idx * 80}>
-                      <div className={`bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100`}>
+                      <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 h-full flex flex-col">
                         <div className="flex items-center mb-3 md:mb-4">
                           {t.avatarUrl ? (
                             <img
@@ -2401,7 +2450,6 @@
                                 <span className="text-emerald-700 font-semibold">{t.avatar}</span>
                               )}
                             </div>
-                            
                           )}
                           <div>
                             <p className="font-semibold text-gray-900 text-sm md:text-base">{t.name}</p>
@@ -2409,10 +2457,48 @@
                           </div>
                         </div>
                         <RatingStars value={t.rating} />
-                        <p className="mt-2 md:mt-3 text-xs md:text-sm text-gray-700">“{t.content}”</p>
+                        <p className="mt-2 md:mt-3 text-xs md:text-sm text-gray-700 flex-1">
+                          “{t.content.length > 220 ? `${t.content.slice(0, 217)}...` : t.content}”
+                        </p>
                       </div>
                     </Reveal>
                   ))}
+                </div>
+
+                {/* Mobile: horizontal swipeable list */}
+                <div className="md:hidden -mx-4 px-4 overflow-x-auto pb-2">
+                  <div className="flex gap-3 snap-x snap-mandatory">
+                    {visibleTestimonials.map((t, idx) => (
+                      <Reveal key={t.id} delay={idx * 80}>
+                        <div className="min-w-[260px] max-w-[280px] bg-white p-4 rounded-xl shadow-sm border border-gray-100 snap-start flex flex-col">
+                          <div className="flex items-center mb-3">
+                            {t.avatarUrl ? (
+                              <img
+                                src={t.avatarUrl}
+                                alt={`Foto ${t.name}`}
+                                loading="lazy"
+                                className="w-12 h-12 rounded-full object-cover mr-3"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mr-3" aria-hidden>
+                                {getRoleIcon(t.role) ?? (
+                                  <span className="text-emerald-700 font-semibold">{t.avatar}</span>
+                                )}
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
+                              <p className="text-[11px] text-gray-500">{t.role}</p>
+                            </div>
+                          </div>
+                          <RatingStars value={t.rating} />
+                          <p className="mt-2 text-xs text-gray-700 flex-1">
+                            “{t.content.length > 220 ? `${t.content.slice(0, 217)}...` : t.content}”
+                          </p>
+                        </div>
+                      </Reveal>
+                    ))}
+                  </div>
                 </div>
                 {/* Desktop pagination: full numeric */}
                 <div className="hidden md:flex justify-center items-center gap-3 md:gap-4 mt-4 md:mt-3">
@@ -2761,12 +2847,19 @@
         {showStickyCta && !showSplash && (
           <div className="fixed bottom-4 inset-x-4 md:inset-x-auto md:right-6 md:bottom-6 z-50">
             <div className="bg-emerald-600 text-white rounded-full shadow-xl px-4 py-3 md:py-3.5 flex items-center justify-between gap-3 md:gap-4">
-              <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="" className="hidden md:block h-6 w-auto opacity-90" aria-hidden />
-                <span className="text-sm md:text-base font-semibold">Al-Qur'an Kharisma — Rp 297.000</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
+                <span className="text-xs md:text-sm font-semibold opacity-90">Al-Qur'an Kharisma</span>
+                <span className="text-sm md:text-base font-bold">Rp 297.000</span>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowStickyCta(false)} aria-label="Tutup" className="bg-white/15 hover:bg-white/25 rounded-full p-1.5 transition">
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSmoothNav('#harga')}
+                  className="inline-flex items-center justify-center px-4 py-2.5 md:py-3 rounded-full text-sm md:text-base font-semibold bg-white text-emerald-700 hover:bg-emerald-50 active:scale-[0.99] transition-transform min-w-[120px]"
+                >
+                  Beli Sekarang
+                </button>
+                <button onClick={() => setShowStickyCta(false)} aria-label="Tutup" className="bg-white/15 hover:bg-white/25 rounded-full p-2 transition">
                   <X className="w-4 h-4" />
                 </button>
               </div>
