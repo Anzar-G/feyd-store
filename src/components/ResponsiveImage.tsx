@@ -7,6 +7,7 @@ export type ResponsiveImageProps = {
   width?: number;
   height?: number;
   loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
   sizes?: string;
   srcSetWebp?: string;
   srcSetAvif?: string;
@@ -20,6 +21,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   width,
   height,
   loading = 'lazy',
+  fetchPriority,
   sizes,
   srcSetWebp,
   srcSetAvif,
@@ -35,6 +37,8 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         width={width}
         height={height}
         loading={loading}
+        // @ts-ignore
+        fetchPriority={fetchPriority}
         onLoad={onLoad}
       />
     );
@@ -51,6 +55,8 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         width={width}
         height={height}
         loading={loading}
+        // @ts-ignore
+        fetchPriority={fetchPriority}
       />
     </picture>
   );

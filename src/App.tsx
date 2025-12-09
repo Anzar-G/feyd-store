@@ -26,8 +26,11 @@ import {
   ArrowRight,
   ShoppingCart,
 } from 'lucide-react';
+
+import SEO from './components/SEO';
 import SeoHead from './components/SeoHead';
 import ResponsiveImage from './components/ResponsiveImage';
+
 import { useCart as useCartHook } from './hooks/useCart';
 import SkeletonCard from './components/SkeletonCard';
 import Analytics from './components/Analytics';
@@ -1064,7 +1067,8 @@ const ProductPage: React.FC<ProductProps> = ({ slug, title, author, tagline, cov
                   src={cover}
                   alt={`Sampul ${title}`}
                   className="w-64 sm:w-72 md:w-[24rem] h-auto object-cover transform group-hover:scale-[1.01] transition"
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority="high"
                   onLoad={() => setCoverLoaded(true)}
                 />
                 <div className="absolute top-2 right-2 z-10 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase shadow">Ready Stock</div>
@@ -2216,62 +2220,127 @@ const App: React.FC = () => {
 
       <main>
         {isKeranjang ? (
-          <CartPage cartCount={cartCount} setCartCount={setCartCount} />
+          <>
+            <SEO
+              title="Keranjang Belanja"
+              description="Selesaikan pesanan Al-Qur'an Kharisma dan buku islami Anda di sini."
+              url="https://feyd-store.vercel.app/#/keranjang"
+            />
+            <CartPage cartCount={cartCount} setCartCount={setCartCount} />
+          </>
         ) : isPesanQuran ? (
-          <QuickOrderQuranPage />
+          <>
+            <SEO
+              title="Pesan Al-Qur'an Kharisma"
+              description="Formulir pemesanan cepat Al-Qur'an Kharisma via WhatsApp."
+              url="https://feyd-store.vercel.app/#/pesan-quran"
+            />
+            <QuickOrderQuranPage />
+          </>
         ) : isWaitlist ? (
-          <WaitlistAdminPage />
+          <>
+            <SEO
+              title="Daftar Tunggu Promo"
+              description="Daftar tunggu untuk mendapatkan promo spesial Al-Qur'an Kharisma berikutnya."
+              url="https://feyd-store.vercel.app/#/pilih-admin"
+            />
+            <WaitlistAdminPage />
+          </>
         ) : productSlug === 'melawan-kemustahilan' ? (
-          <ProductPage
-            slug="melawan-kemustahilan"
-            title="Melawan Kemustahilan"
-            author="Dewa Eka Prayoga"
-            tagline="Menguji Keimanan, Menjemput Keajaiban"
-            cover="/images/melawan-kemustahilan.jpg"
-            synopsis={[
-              'Dalam hidup, ada saat-saat kita merasa terjepit, hampir menyerah, dan bertanya: “Apakah ini akhirnya?” Buku ini adalah teman setia di masa sulit — mengingatkan bahwa di balik setiap kemustahilan, ada keajaiban yang menunggu mereka yang tetap percaya.',
-              'Melalui kisah nyata dan refleksi spiritual, Melawan Kemustahilan mengajakmu untuk tidak menyerah, terus berdoa, dan yakin bahwa Allah selalu punya rencana indah — bahkan saat kau tak melihatnya.'
-            ]}
-            testimonial={{ quote: 'Buku ini datang tepat saat saya di PHK. Membacanya bikin saya bangkit lagi. Terima kasih, Kang Dewa!', by: 'Rudi, Bandung' }}
-            cartCount={cartCount}
-            onAddToCart={handleAddToCart}
-          />
+          <>
+            <SEO
+              title="Melawan Kemustahilan - Dewa Eka Prayoga"
+              description="Novel inspiratif tentang perjuangan melawan kemustahilan dengan kekuatan iman dan doa."
+              image="https://feyd-store.vercel.app/images/melawan-kemustahilan.jpg"
+              url="https://feyd-store.vercel.app/#/produk/melawan-kemustahilan"
+            />
+            <ProductPage
+              slug="melawan-kemustahilan"
+              title="Melawan Kemustahilan"
+              author="Dewa Eka Prayoga"
+              tagline="Menguji Keimanan, Menjemput Keajaiban"
+              cover="/images/melawan-kemustahilan.jpg"
+              synopsis={[
+                'Dalam hidup, ada saat-saat kita merasa terjepit, hampir menyerah, dan bertanya: “Apakah ini akhirnya?” Buku ini adalah teman setia di masa sulit — mengingatkan bahwa di balik setiap kemustahilan, ada keajaiban yang menunggu mereka yang tetap percaya.',
+                'Melalui kisah nyata dan refleksi spiritual, Melawan Kemustahilan mengajakmu untuk tidak menyerah, terus berdoa, dan yakin bahwa Allah selalu punya rencana indah — bahkan saat kau tak melihatnya.'
+              ]}
+              testimonial={{ quote: 'Buku ini datang tepat saat saya di PHK. Membacanya bikin saya bangkit lagi. Terima kasih, Kang Dewa!', by: 'Rudi, Bandung' }}
+              cartCount={cartCount}
+              onAddToCart={handleAddToCart}
+            />
+          </>
         ) : productSlug === 'sebelum-aku-tiada' ? (
-          <ProductPage
-            slug="sebelum-aku-tiada"
-            title="Sebelum Aku Tiada"
-            author="Asma Nadia"
-            tagline="Surat-Surat dari Gaza"
-            cover="/images/sebelum-aku-tiada.jpg"
-            synopsis={[
-              'Dalam kesunyian paling jujur, manusia bertemu dirinya sendiri. Sebelum Aku Tiada adalah undangan untuk berhenti sebentar — menata ulang arah, memeluk luka, dan kembali beriman pada takdir yang baik.',
-              'Setiap halaman adalah doa yang ditulis dengan tinta air mata — namun menguatkan, bukan melemahkan.'
-            ]}
-            testimonial={{ quote: 'Saya menangis di halaman 12. Buku ini mengingatkan kita: hidup ini berharga, dan setiap kata bisa jadi amal.', by: 'Siti, Yogyakarta' }}
-            cartCount={cartCount}
-            onAddToCart={handleAddToCart}
-          />
+          <>
+            <SEO
+              title="Sebelum Aku Tiada - Asma Nadia"
+              description="Kumpulan surat dan refleksi tentang Palestina dan kemanusiaan dari Asma Nadia."
+              image="https://feyd-store.vercel.app/images/sebelum-aku-tiada.jpg"
+              url="https://feyd-store.vercel.app/#/produk/sebelum-aku-tiada"
+            />
+            <ProductPage
+              slug="sebelum-aku-tiada"
+              title="Sebelum Aku Tiada"
+              author="Asma Nadia"
+              tagline="Surat-Surat dari Gaza"
+              cover="/images/sebelum-aku-tiada.jpg"
+              synopsis={[
+                'Dalam kesunyian paling jujur, manusia bertemu dirinya sendiri. Sebelum Aku Tiada adalah undangan untuk berhenti sebentar — menata ulang arah, memeluk luka, dan kembali beriman pada takdir yang baik.',
+                'Setiap halaman adalah doa yang ditulis dengan tinta air mata — namun menguatkan, bukan melemahkan.'
+              ]}
+              testimonial={{ quote: 'Saya menangis di halaman 12. Buku ini mengingatkan kita: hidup ini berharga, dan setiap kata bisa jadi amal.', by: 'Siti, Yogyakarta' }}
+              cartCount={cartCount}
+              onAddToCart={handleAddToCart}
+            />
+          </>
         ) : productSlug === 'titik-balik' ? (
-          <ProductPage
-            slug="titik-balik"
-            title="Titik Balik"
-            author="Arafat"
-            tagline="Ada 365 Hari Dalam Setahun..."
-            cover="/images/titik-balik.jpg"
-            synopsis={[
-              'Setiap hari adalah kesempatan memulai kembali. Titik Balik mengajakmu menata ulang hidup — perlahan, tanpa membenci masa lalu.',
-              'Refleksi ringan namun dalam, cocok untuk dibaca setiap pagi sebagai pengingat bahwa Allah selalu membuka pintu pulang.'
-            ]}
-            testimonial={{ quote: 'Buku ini seperti sahabat yang mengingatkan dengan lembut.', by: 'Andi, Surabaya' }}
-            cartCount={cartCount}
-            onAddToCart={handleAddToCart}
-          />
+          <>
+            <SEO
+              title="Titik Balik - Arafat"
+              description="Buku refleksi harian untuk menemukan momen titik balik dalam hidup."
+              image="https://feyd-store.vercel.app/images/titik-balik.jpg"
+              url="https://feyd-store.vercel.app/#/produk/titik-balik"
+            />
+            <ProductPage
+              slug="titik-balik"
+              title="Titik Balik"
+              author="Arafat"
+              tagline="Ada 365 Hari Dalam Setahun..."
+              cover="/images/titik-balik.jpg"
+              synopsis={[
+                'Setiap hari adalah kesempatan memulai kembali. Titik Balik mengajakmu menata ulang hidup — perlahan, tanpa membenci masa lalu.',
+                'Refleksi ringan namun dalam, cocok untuk dibaca setiap pagi sebagai pengingat bahwa Allah selalu membuka pintu pulang.'
+              ]}
+              testimonial={{ quote: 'Buku ini seperti sahabat yang mengingatkan dengan lembut.', by: 'Andi, Surabaya' }}
+              cartCount={cartCount}
+              onAddToCart={handleAddToCart}
+            />
+          </>
         ) : route.startsWith('#/wakaf') ? (
-          <Wakaf />
+          <>
+            <SEO
+              title="Wakaf Al-Qur'an & Buku Islami"
+              description="Program wakaf Al-Qur'an dan buku islami untuk masjid, pesantren, dan madrasah."
+              url="https://feyd-store.vercel.app/#/wakaf"
+            />
+            <Wakaf />
+          </>
         ) : route.startsWith('#/galeri-wakaf') ? (
-          <GaleriWakaf />
+          <>
+            <SEO
+              title="Galeri Penyaluran Wakaf"
+              description="Dokumentasi penyaluran wakaf Al-Qur'an ke berbagai daerah."
+              url="https://feyd-store.vercel.app/#/galeri-wakaf"
+            />
+            <GaleriWakaf />
+          </>
         ) : (
           <>
+            <SEO
+              title="Al-Qur'an Kharisma & Novel Islami Terbaik"
+              description="Beli Al-Qur'an Kharisma dengan tajwid warna dan terjemahan per kata. Novel Islami inspiratif seperti Melawan Kemustahilan & Titik Balik. Pengiriman cepat & aman ke seluruh Indonesia."
+              keywords="Al-Qur'an Kharisma, Novel Islami, Al-Qur'an tajwid warna, Jual Al-Qur'an online, Novel Melawan Kemustahilan, Novel Titik Balik"
+              url="https://feyd-store.vercel.app"
+            />
             {/* Hero */}
             <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 bg-gradient-to-br from-emerald-50 to-teal-50">
               {/* Logo watermark */}
@@ -2328,7 +2397,8 @@ const App: React.FC = () => {
                         <img
                           src="/cover.jpg"
                           alt="Gambar produk Al-Qur'an Kharisma"
-                          loading="lazy"
+                          loading="eager"
+                          fetchPriority="high"
                           className="w-full h-auto object-cover aspect-[3/4] animate-float-slow"
                         />
                       </div>
@@ -2816,7 +2886,7 @@ const App: React.FC = () => {
                     <Reveal key={p.title}>
                       <a href={p.href} onClick={(e) => { e.preventDefault(); window.location.hash = p.href; }} className="block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 overflow-hidden">
                         <div className="aspect-[4/3] bg-gray-100">
-                          <img src={p.cover} alt={`Sampul ${p.title}`} className="w-full h-full object-cover" />
+                          <img src={p.cover} alt={`Sampul ${p.title}`} loading="lazy" className="w-full h-full object-cover" />
                         </div>
                         <div className="p-4">
                           <div className="flex items-center justify-between">
