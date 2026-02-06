@@ -11,6 +11,7 @@ import StickyBottomCTA from './components/StickyBottomCTA';
 import LiveOrderFeed from './components/LiveOrderFeed';
 import CustomerServiceChat from './components/CustomerServiceChat';
 import { HeaderWakaf, HeaderGaleri } from './components/Headers';
+import InstallPWA from './components/InstallPWA';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -251,6 +252,7 @@ const App: React.FC = () => {
       )}
       <LiveOrderFeed route={route} productName={productSlug || undefined} />
       <CustomerServiceChat route={route} productName={productSlug || undefined} />
+      <InstallPWA />
     </div>
   );
 };
